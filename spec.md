@@ -5,6 +5,25 @@ A text adventure set in 1850s California. The player starts at Sutter's Fort and
 
 ---
 
+## Output Files
+
+The Gem must produce exactly the following Java source files:
+
+- `Main.java`
+- `Game.java`
+- `Room.java`
+- `Player.java`
+- `Item.java`
+- `Ore.java`
+- `Gold.java`
+- `Coal.java`
+- `Crop.java`
+- `Wheat.java`
+- `Livestock.java`
+- `Cattle.java`
+
+---
+
 ## I. Global Game State
 
 **Boolean flags** (drive world changes):
