@@ -24,6 +24,28 @@ The Gem must produce exactly the following Java source files:
 
 ---
 
+## Command Vocabulary
+
+The game accepts only the verbs listed below. Any other input prints: "You can't do that here. Type 'help' for a list of commands."
+
+- `go [direction]` — move N/S/E/W to an adjacent room.
+- `help` — list every command in this vocabulary.
+- `look` — reprint the current room's description.
+- `inventory` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan).
+- `use [item] on [target]` — trigger an interaction (e.g. "use seeds on field", "use pickaxe on coal vein").
+- `pan` — pan for gold (American River only).
+- `harvest` — cut ready wheat (Sutter's Fort only).
+- `collect` — gather cattle goods (Californio Rancho only).
+- `read` — read the newspaper (Daily Alta only).
+- `loan` — take the one-time bank loan (Wells Fargo only).
+- `buy [thing]` — purchase. Valid things: `membership`, `pickaxe`, `upgrade`, `cattle`, `seeds`, `store`, `baron`.
+- `sell [item]` — sell stock. Valid items: `gold`, `coal`, `wheat`, `goods`.
+- `invest railroad [amount]` — buy a railroad bond (SF Exchange only).
+
+Commands are case-insensitive. Commands valid only in certain rooms print "You can't do that here." if attempted elsewhere.
+
+---
+
 ## I. Global Game State
 
 **Boolean flags** (drive world changes):
@@ -64,8 +86,8 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 ## III. Room Definitions
 
 ### Sutter's Fort (START)
-- **Description (`cropsReady == False`):** "Timber walls enclose a patch of tilled soil. To the north lies the American River; east, Sacramento. The year is 1849. Your fields lie quiet."
-- **Description (`cropsReady == True`):** "Your wheat is golden and ripe, ready to be cut."
+- **Description (`cropsReady == False`):** "Timber walls enclose a patch of tilled soil. To the north lies the American River; east, Sacramento. The year is 1849. Your fields lie quiet — if you had seeds, you could use them on the field."
+- **Description (`cropsReady == True`):** "Your wheat is golden and ripe. You could harvest it now."
 - **Items:** Field (fixture; target of "Use Seeds on Field")
 - **Exits:**
   - North to American River | **Condition:** None
@@ -74,23 +96,23 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
   - West to Sierra Mine | **Condition:** None
 
 ### American River
-- **Description:** "The American River runs cold over dark gravel. A battered tin pan sits on a rock at the bank. Specks of yellow shimmer in the riverbed."
+- **Description:** "The American River runs cold over dark gravel. A battered tin pan sits on a rock at the bank. Specks of yellow shimmer in the riverbed — you could pan here."
 - **Items:** Pan (fixture)
 - **Exits:**
   - South to Sutter's Fort | **Condition:** None
 
 ### Sierra Mine
 - **Description (`t1PickaxeOwned == False` and `t2PickaxeOwned == False`):** "Coal veins streak the walls; gold gleams from deeper stone. You have no tool to mine any of it."
-- **Description (`t1PickaxeOwned == True` and `t2PickaxeOwned == False`):** "Coal seams are soft enough for your iron pickaxe. The gold veins are still too hard to crack."
-- **Description (`t2PickaxeOwned == True`):** "Coal and gold are both within reach. Your steel pickaxe bites cleanly into either."
+- **Description (`t1PickaxeOwned == True` and `t2PickaxeOwned == False`):** "Coal seams are soft enough for your iron pickaxe — use the pickaxe on the coal vein to mine it. The gold veins are still too hard to crack."
+- **Description (`t2PickaxeOwned == True`):** "Coal and gold are both within reach. Your steel pickaxe bites cleanly into either — use the pickaxe on the coal vein or the gold vein."
 - **Items:** Coal Vein (fixture; target of "Use Pickaxe on Coal Vein"), Gold Vein (fixture; target of "Use Pickaxe on Gold Vein")
 - **Exits:**
   - East to Sutter's Fort | **Condition:** None
 
 ### Californio Rancho
-- **Description (`cattleCount == 0`):** "A grassy expanse with adobe outbuildings and empty corrals. A fine place to raise cattle, if you owned any."
+- **Description (`cattleCount == 0`):** "A grassy expanse with adobe outbuildings and empty corrals. A fine place to raise cattle, if you bought some at Brannan's Store."
 - **Description (`cattleCount > 0` and `resourcesAvailable == False`):** "Your cattle graze peacefully. They have not produced anything new yet."
-- **Description (`cattleCount > 0` and `resourcesAvailable == True`):** "Your cattle have produced fresh beef and milk. The goods are ready to be collected."
+- **Description (`cattleCount > 0` and `resourcesAvailable == True`):** "Your cattle have produced fresh beef and milk. You could collect the goods now."
 - **Items:** Pasture (fixture)
 - **Exits:**
   - North to Sutter's Fort | **Condition:** None
@@ -105,14 +127,14 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
   - West to Sutter's Fort | **Condition:** None
 
 ### Brannan's Store
-- **Description (`membershipBought == False`):** "Sam Brannan's General Store. He eyes you over a ledger. 'Members only, friend. You can sell to me, but you can't buy until you've paid your dues.'"
-- **Description (`membershipBought == True`):** "Brannan tips his hat. 'Welcome back. What'll it be?'"
+- **Description (`membershipBought == False`):** "Sam Brannan's General Store. He eyes you over a ledger. 'Members only, friend. You can sell to me, but you can't buy until you've paid your dues — buy a membership for $100.'"
+- **Description (`membershipBought == True`):** "Brannan tips his hat. 'Welcome back. Buy seeds, a pickaxe, an upgrade, or cattle — or sell me your gold, coal, wheat, or goods.'"
 - **Items:** Counter (fixture; site of all buy and sell actions)
 - **Exits:**
   - North to Sacramento | **Condition:** None
 
 ### Daily Alta California
-- **Description:** "A newsboy hawks copies of the Alta California. A carriage road climbs north toward Nob Hill."
+- **Description:** "A newsboy hawks copies of the Alta California — you could read one for the date and the headline. A carriage road climbs north toward Nob Hill."
 - **Items:** Newspaper (fixture; target of "read")
 - **Exits:**
   - South to Sacramento | **Condition:** None
@@ -120,23 +142,23 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
   - **Failure message (condition unmet):** "The doorman waves you off. 'Come back when you're somebody, friend.'"
 
 ### Wells Fargo Bank
-- **Description:** "The offices of Wells Fargo and Co. Brass railings, heavy ledgers, strongboxes. A teller looks up. 'Need a loan?'"
+- **Description:** "The offices of Wells Fargo and Co. Brass railings, heavy ledgers, strongboxes. A teller looks up. 'Need a loan? Just say the word.'"
 - **Items:** Teller's Window (fixture; site of "loan")
 - **Exits:**
   - West to Sacramento | **Condition:** None
   - East to SF Exchange | **Condition:** None
 
 ### San Francisco Exchange
-- **Description (`localStoreOwned == False` and `railroadBondOwned == False`):** "The trading floor of the SF Exchange. A chalkboard lists storefront leases and railroad bonds."
-- **Description (`localStoreOwned == True` and `railroadBondOwned == False`):** "Your storefront deed sits framed by the clerk's desk."
-- **Description (`localStoreOwned == False` and `railroadBondOwned == True`):** "The clerk tracks your railroad bond on his ledger."
+- **Description (`localStoreOwned == False` and `railroadBondOwned == False`):** "The trading floor of the SF Exchange. A chalkboard lists storefront leases and railroad bonds — you could buy a store or invest in a railroad bond."
+- **Description (`localStoreOwned == True` and `railroadBondOwned == False`):** "Your storefront deed sits framed by the clerk's desk. You could still invest in a railroad bond."
+- **Description (`localStoreOwned == False` and `railroadBondOwned == True`):** "The clerk tracks your railroad bond on his ledger. You could still buy a store."
 - **Description (`localStoreOwned == True` and `railroadBondOwned == True`):** "The clerk gestures to your deed and bond. 'Two irons in the fire.'"
 - **Items:** Chalkboard (fixture; site of "buy store" and "invest railroad")
 - **Exits:**
   - West to Wells Fargo Bank | **Condition:** None
 
 ### Big Four Mansion (WIN ROOM)
-- **Description:** "The marble foyer of the Big Four Mansion atop Nob Hill. A lobbyist extends a hand. The leather chair by the window is the Railroad Baron's chair."
+- **Description:** "The marble foyer of the Big Four Mansion atop Nob Hill. A lobbyist extends a hand. The leather chair by the window is the Railroad Baron's — for $100,000, you could buy baron status and take that seat."
 - **Items:** Baron's Chair (fixture; target of "buy baron")
 - **Exits:**
   - South to Daily Alta | **Condition:** None
