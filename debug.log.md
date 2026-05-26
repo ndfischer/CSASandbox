@@ -62,6 +62,21 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
     -There should be a 80% chance for the player to make 30% to 60%
     -There should be a 20% chance for the player to make 80% to 150%
 
+### Iteration 4
+
+to-do:
+- pay back loan mechanic
+- add lose mechanic
+- put n,s,e,w into gem
+- more variable interest rates
+- buff gold value even more
+
+
+- `gameLost`: Default (False) - Lose condition, becomes true if the player has been in debt for 10 turns.
+
+- ensure game can be played in <5min
+
+
 ---
 
 ## Verification Runs
