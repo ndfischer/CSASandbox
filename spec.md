@@ -267,6 +267,13 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 - **Location:** SF Exchange
 - **Prerequisite:** `amount > 0`, `liquidMoney >= amount`, `railroadBondOwned == False`
 - **Effect:** Subtracts `amount` from `liquidMoney`. Sets `railroadBondOwned = True`, `bondPrincipal = amount`, `bondTimer = 0`. Print: "You buy a bond on the Central Pacific. The clerk seals it with red wax."
+- **Logic:**
+  -There should be a 30% chance for the player to earn a small amount or lose money from the speculation
+    -This amount should be from 10% to -35%
+  -There should be a 70% chance for the player to earn money
+    -If the player rolled to make money, the game should roll again to check how much
+    -There should be a 80% chance for the player to make 30% to 60%
+    -There should be a 20% chance for the player to make 80% to 150%
 
 ### Buy Railroad Baron Status (WIN)
 - **Action:** "buy baron"
@@ -319,5 +326,5 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 | Cattle Goods          | counter (Player)   | Californio Rancho           | Counter (Brannan's Store) - sell at $10 each     |
 | Loan                  | boolean flag       | Wells Fargo Bank            | One-time $1,000 cash advance                     |
 | Local Store Deed      | boolean flag       | SF Exchange                 | Chalkboard - $50-$150 per turn passive           |
-| Railroad Bond         | boolean flag       | SF Exchange                 | Chalkboard - pays 2x principal after 20 turns    |
+| Railroad Bond         | boolean flag       | SF Exchange                 | Chalkboard - pays a random amt after 20 turns    |
 | Railroad Baron Status | boolean flag (win) | Big Four Mansion            | Baron's Chair - ends the game in victory         |
