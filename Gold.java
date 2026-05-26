@@ -1,17 +1,15 @@
+// --- FILE: Gold.java ---
 /**
- * Represents gold ore found in the American River and Sierra Mine.
+ * Represents gold ore found in the game.
  *
- * Extends Ore with a predefined price value.
+ * Extends Ore to provide specific pricing for gold. It is placed in the
+ * American River and Sierra Mine to represent pan and mine targets.
  */
 public class Gold extends Ore {
-
   /**
-   * Constructs a Gold ore item.
-   *
-   * @param name the name of the gold entity
-   * @param description the description of the gold entity
+   * Constructs a new Gold item with predefined value.
    */
-  public Gold(String name, String description) {
-    super(name, description, 2.50);
+  public Gold() {
+    super("Gold", "Shiny native gold.", 2.50);
   }
 }
