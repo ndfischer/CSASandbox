@@ -84,6 +84,12 @@ public class Game {
     private void processCommand(String input) {
         String lowerInput = input.toLowerCase();
 
+        // Mapping Single Character Shortcut Navigation Rules
+        if (lowerInput.equals("n")) { this.handleMovement("north"); return; }
+        if (lowerInput.equals("s")) { this.handleMovement("south"); return; }
+        if (lowerInput.equals("e")) { this.handleMovement("east"); return; }
+        if (lowerInput.equals("w")) { this.handleMovement("west"); return; }
+
         // 1. HELP COMMAND
         if (lowerInput.equals("help")) {
             printHelp();
