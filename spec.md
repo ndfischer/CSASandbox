@@ -233,8 +233,8 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 ### Buy Cattle
 - **Action:** "buy cattle"
 - **Location:** Brannan's Store
-- **Prerequisite:** `membershipBought == True` and `liquidMoney >= 500`
-- **Effect:** Subtracts 500 from `liquidMoney`. Adds 1 to `cattleCount`. If `cattleCount` was 0, sets `cattleTimer = 0`. Print: "A vaquero drives your new beast south toward the Rancho."
+- **Prerequisite:** `membershipBought == True` and `liquidMoney >= 100`
+- **Effect:** Subtracts 100 from `liquidMoney`. Adds 1 to `cattleCount`. If `cattleCount` was 0, sets `cattleTimer = 0`. Print: "A vaquero drives your new beast south toward the Rancho."
 
 ### Buy Seeds
 - **Action:** "buy seeds"
@@ -278,12 +278,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 - **Prerequisite:** `amount > 0`, `liquidMoney >= amount`, `railroadBondOwned == False`
 - **Effect:** Subtracts `amount` from `liquidMoney`. Sets `railroadBondOwned = True`, `bondPrincipal = amount`, `bondTimer = 0`. Print: "You buy a bond on the Central Pacific. The clerk seals it in an envelope."
 - **Logic:**
-  - There should be a 30% chance for the player to earn a small amount from the speculation
-    - This amount should be from 10% to 35%
-  - There should be a 70% chance for the player to earn money
-    - If the player rolled to make money, the game should roll again to check how much
-    - There should be a 50% chance for the player to make 75%
-    - There should be a 50% chance for the player to make 135% (multiply principal by 2.35)
+    - The player should have equally weighted chances to earn from 35% to 135%
 
 ### Buy Railroad Baron Status (WIN)
 - **Action:** "buy baron"
@@ -298,7 +293,7 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 3. If `cattleCount > 0` and `resourcesAvailable == False`, increment `cattleTimer`. If `>= 10`, set `resourcesAvailable = True`.
 4. If `localStoreOwned == True`, add a random integer ($50-$150) to `liquidMoney`.
 5. If `railroadBondOwned == True`, increment `bondTimer`. If `>= 20`, add `2 * bondPrincipal` to `liquidMoney`, then reset `railroadBondOwned = False`, `bondPrincipal = 0`, `bondTimer = 0`.
-6. Recompute `netWorth = liquidMoney + (gold * 2.50) + (coal * 0.50) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`.
+6. Recompute `netWorth = liquidMoney + (gold * 2.50) + (coal * 0.50) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 100) + bondPrincipal`.
 7. If `railroadBaronPurchased == True`, print the winning epilogue and end the game.
 8. If the player has been in debt for 30 turns, print the lose epilogue and end the game.
 
@@ -314,7 +309,7 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 7. **Brannan's Store** - Sell wheat. (`wheat = 0`) Buy Membership ($100). (`membershipBought = True`) Buy Pickaxe ($50). (`t1PickaxeOwned = True`) Go north, west, west.
 8. **Sierra Mine** - Use Pickaxe on Coal Vein. (`coal` increases by 50-200 over 5 turns) Go east, east, south.
 9. **Brannan's Store** - Sell coal. Repeat steps 6-7 until you can afford the upgrade. Buy Upgrade ($500). (`t2PickaxeOwned = True`)
-10. **Brannan's Store** - Buy Cattle (optional) ($500). (`cattleCount = 1`, `cattleTimer = 0`) Go north, east, east.
+10. **Brannan's Store** - Buy Cattle (optional) ($100). (`cattleCount = 1`, `cattleTimer = 0`) Go north, east, east.
 11. **SF Exchange** - Once `liquidMoney >= 5000`, Buy Store. (optional) (`localStoreOwned = True`) Invest Railroad. (`railroadBondOwned = True`) Go west, west, west, west.
 12. **Sierra Mine** - Mine gold. (`gold` increases by 20-80 over 5 turns) Cycle mine-and-sell and collect-and-sell to grow `netWorth`, while investing in railroads
 13. **Daily Alta** - Once `netWorth >= 10000`, go north.
@@ -337,5 +332,5 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 | Cattle Goods          | counter (Player)   | Californio Rancho           | Counter (Brannan's Store) - sell at $10 each     |
 | Loan                  | boolean flag       | Wells Fargo Bank            | One-time $1,000 cash advance                     |
 | Local Store Deed      | boolean flag       | SF Exchange                 | Chalkboard - $50-$150 per turn passive           |
-| Railroad Bond         | boolean flag       | SF Exchange                 | Chalkboard - pays a random amt after 20 turns    |
+| Railroad Bond         | boolean flag       | SF Exchange                 | Chalkboard - pays a specified amt after 20 turns |
 | Railroad Baron Status | boolean flag (win) | Big Four Mansion            | Baron's Chair - ends the game in victory         |
