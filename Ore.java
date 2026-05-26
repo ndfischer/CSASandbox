@@ -1,19 +1,18 @@
-// --- FILE: Ore.java ---
 /**
- * Represents an ore resource in the game.
+ * Represents minable resources in the game world.
  *
- * Demonstrates inheritance by extending Item and adding a pricePerGram field.
- * Used as a base class for specific minable resources like Gold and Coal.
+ * Demonstrates inheritance by extending Item and adding a price field.
+ * Used to model valuable earth resources like Gold and Coal.
  */
 public class Ore extends Item {
   private double pricePerGram;
 
   /**
-   * Constructs a new Ore item.
+   * Constructs an Ore item.
    *
    * @param name the name of the ore
    * @param description the description of the ore
-   * @param pricePerGram the market value of the ore per gram
+   * @param pricePerGram the monetary value per gram of this ore
    */
   public Ore(String name, String description, double pricePerGram) {
     super(name, description);
@@ -21,11 +20,11 @@ public class Ore extends Item {
   }
 
   /**
-   * Retrieves the price per gram of the ore.
+   * Gets the selling price per gram.
    *
-   * @return the price per gram
+   * @return the price per gram as a double
    */
   public double getPricePerGram() {
-    return this.pricePerGram;
+    return pricePerGram;
   }
 }
