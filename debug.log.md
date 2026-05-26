@@ -39,8 +39,13 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
 
 ### Iteration 3 — Overall Game Balancing (May 26)
 
-Spec gap.
+**Bug observed when running the game:** Playtesters had a hard time completing the game in under 5 minutes, largely due to the complexity and slow-moving nature of commands and the value of items in the inventory.
 
+**Classification:** Spec gap.
+
+**Why the original spec wording failed:** By chasing complexity rather than ease of use, we made it overly challenging for our players to complete the game in the alotted 5 minutes. We made changes in our spec wording not because of errors in generated code, but to make it easier for the player to reproduce a succesful outcome (i.e., becoming a baron) in each game.
+
+**Spec change (seven parts):**
 1. Simplified commands
 - "use pickaxe on coal vein" -> "mine coal"
 - "use pickaxe on gold vein" -> "mine gold"
