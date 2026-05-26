@@ -6,8 +6,8 @@ import java.util.Random;
 /**
  * Primary game simulation state coordinator engine.
  *
- * <p>Updated to enforce strict vocabulary boundaries, process nested conditional
- * random speculation curves for investments, and manage the bank loan process.
+ * <p>Updated to enforce strict vocabulary boundaries, process standalone navigation
+ * shortcuts, calculate debt deficits, and process compound interest liquidation via 'pay loan'.
  */
 public class Game {
   // Global Spec Flags
@@ -21,6 +21,7 @@ public class Game {
   private boolean loanTaken = false;
   private boolean loanAvailable = true;
   private boolean railroadBaronPurchased = false;
+  private boolean gameLost = false;
 
   // Global Resource Accumulators
   private double liquidMoney = 50.0;
@@ -33,6 +34,12 @@ public class Game {
   private double cattleGoods = 0.0;
   private double bondPrincipal = 0.0;
   private double turn = 0.0;
+
+  // Debt Liabilities Tracking Metrics
+  private double loanPrincipalLiability = 0.0;
+  private double loanAccruedInterest = 0.0;
+  private double activeLoanRate = 0.0;
+  private int debtTurns = 0;
 
   // Turn-based Processing Tracking Clocks
   private int plantTimer = 0;
@@ -152,9 +159,15 @@ public class Game {
   private void processCommand(String rawInput) {
     String lowerInput = rawInput.toLowerCase();
 
+    // Mapping Single Character Shortcut Navigation Rules
+    if (lowerInput.equals("n")) { this.handleMovement("north"); return; }
+    if (lowerInput.equals("s")) { this.handleMovement("south"); return; }
+    if (lowerInput.equals("e")) { this.handleMovement("east"); return; }
+    if (lowerInput.equals("w")) { this.handleMovement("west"); return; }
+
     // Universal Base Commands
     if (lowerInput.equals("help")) {
-      System.out.println("Valid Commands: go [direction], help, look, inventory, mine coal, mine gold, plant seeds, pan, harvest, collect, read, loan, accept loan, deny loan, buy [thing], sell [item], invest railroad [amount]");
+      System.out.println("Valid Commands: go [direction], n, s, e, w, help, look, inventory, mine coal, mine gold, plant seeds, pan, harvest, collect, read, loan, accept loan, deny loan, pay loan, buy [thing], sell [item], invest railroad [amount]");
       return;
     }
     if (lowerInput.equals("look")) {
@@ -163,11 +176,15 @@ public class Game {
       return;
     }
     if (lowerInput.equals("inventory")) {
-      System.out.println("--- INVENTORY & TRACKED PORFOLIOS ---");
-      System.out.printf("liquidMoney: %.2f\ngold: %.2f\ncoal: %.2f\nwheat: %.2f\nseeds: %.2f\ncattleGoods: %.2f\n", 
+      System.out.println("--- INVENTORY & TRACKED PORTFOLIOS ---");
+      System.out.printf("liquidMoney: %.2f | gold: %.2f | coal: %.2f | wheat: %.2f | seeds: %.2f | cattleGoods: %.2f\n", 
           this.liquidMoney, this.gold, this.coal, this.wheat, this.seeds, this.cattleGoods);
       System.out.printf("Flags - Membership: %b | Pickaxe: %b | Upgrade: %b | Store Deed: %b | Bond: %b | Loan Account: %b\n",
           this.membershipBought, this.t1PickaxeOwned, this.t2PickaxeOwned, this.localStoreOwned, this.railroadBondOwned, this.loanTaken);
+      if (this.loanTaken) {
+        System.out.printf("Accrued Liabilities - Current Interest Rate: %.0f%% | Outstanding Balance: $%.2f\n", 
+            (this.activeLoanRate * 100), (this.loanPrincipalLiability + this.loanAccruedInterest));
+      }
       return;
     }
     if (lowerInput.startsWith("go ")) {
@@ -230,6 +247,11 @@ public class Game {
     if (lowerInput.equals("deny loan")) {
       if (!roomName.equalsIgnoreCase("Wells Fargo Bank")) { System.out.println("You can't do that here."); return; }
       this.handleDenyLoan();
+      return;
+    }
+    if (lowerInput.equals("pay loan")) {
+      if (!roomName.equalsIgnoreCase("Wells Fargo Bank")) { System.out.println("You can't do that here."); return; }
+      this.handlePayLoan();
       return;
     }
 
@@ -373,7 +395,8 @@ public class Game {
       System.out.println("Wells Fargo staff are reviewing files. Please request again later.");
       return;
     }
-    this.pendingLoanRate = 0.05 + (this.random.nextInt(11) * 0.01); // Random interest calculation logic mapping 5% to 15%
+    // Updated: Volatility scale parameters updated from 10% to 20%
+    this.pendingLoanRate = 0.10 + (this.random.nextInt(11) * 0.01); 
     this.loanOffered = true;
     System.out.printf("The teller calculates calculations. 'We can offer $1,000 at a turn rate of %.0f%% interest.' Type 'accept loan' or 'deny loan'.\n", (this.pendingLoanRate * 100));
   }
@@ -384,6 +407,9 @@ public class Game {
       return;
     }
     this.liquidMoney += 1000.0;
+    this.loanPrincipalLiability = 1000.0;
+    this.loanAccruedInterest = 0.0;
+    this.activeLoanRate = this.pendingLoanRate;
     this.loanTaken = true;
     this.loanOffered = false;
     System.out.println("The teller counts out a thousand dollars and stamps the ledger.");
@@ -400,6 +426,25 @@ public class Game {
     this.loanDenialTimer = 0;
     System.out.println("You refuse the credit lines. You will be able to request a new loan in 7 turns.");
     this.executePostTurnSequence(1);
+  }
+
+  private void handlePayLoan() {
+    if (!this.loanTaken) {
+      System.out.println("You do not hold an active outstanding credit line with this branch.");
+      return;
+    }
+    double totalDues = this.loanPrincipalLiability + this.loanAccruedInterest;
+    if (this.liquidMoney >= totalDues) {
+      this.liquidMoney -= totalDues;
+      this.loanTaken = false;
+      this.loanPrincipalLiability = 0.0;
+      this.loanAccruedInterest = 0.0;
+      this.activeLoanRate = 0.0;
+      System.out.println("You hand the teller your dues and he thanks you for your business.");
+      this.executePostTurnSequence(1);
+    } else {
+      System.out.printf("Transaction denied: Insufficient liquidation reserves to cover total dues ($%.2f).\n", totalDues);
+    }
   }
 
   private void handleBuyRouter(String target, String location) {
@@ -468,10 +513,10 @@ public class Game {
 
   private void handleSellInventory(String target) {
     if (target.equalsIgnoreCase("gold")) {
-      if (this.gold >= 1.0) { this.liquidMoney += (this.gold * 0.50); this.gold = 0; System.out.println("Brannan counts coins onto the counter."); this.executePostTurnSequence(1); }
+      if (this.gold >= 1.0) { this.liquidMoney += (this.gold * 2.50); this.gold = 0; System.out.println("Brannan counts coins onto the counter."); this.executePostTurnSequence(1); }
       else System.out.println("Insufficient volume matching unit parameter guidelines.");
     } else if (target.equalsIgnoreCase("coal")) {
-      if (this.coal >= 1.0) { this.liquidMoney += (this.coal * 0.05); this.coal = 0; System.out.println("Brannan counts coins onto the counter."); this.executePostTurnSequence(1); }
+      if (this.coal >= 1.0) { this.liquidMoney += (this.coal * 0.50); this.coal = 0; System.out.println("Brannan counts coins onto the counter."); this.executePostTurnSequence(1); }
       else System.out.println("Insufficient volume matching unit parameter guidelines.");
     } else if (target.equalsIgnoreCase("wheat")) {
       if (this.wheat >= 1.0) { this.liquidMoney += (this.wheat * 5.0); this.wheat = 0; System.out.println("Brannan counts coins onto the counter."); this.executePostTurnSequence(1); }
@@ -523,6 +568,24 @@ public class Game {
         }
       }
 
+      // Updated: Periodic compounded debt math handling
+      if (this.loanTaken) {
+        if (((int) this.turn) % 10 == 0) {
+          double incrementalInterest = this.loanPrincipalLiability * this.activeLoanRate;
+          this.loanAccruedInterest += incrementalInterest;
+        }
+      }
+
+      // Updated: Deficit / Debt Tracking Check Loop
+      if (this.liquidMoney < 0.0) {
+        this.debtTurns++;
+        if (this.debtTurns >= 10) {
+          this.gameLost = true;
+        }
+      } else {
+        this.debtTurns = 0; // Reset deficit counter if player returns to clean solvency records
+      }
+
       if (this.plantedSeeds > 0 && !this.cropsReady) {
         this.plantTimer++;
         if (this.plantTimer >= 5) this.cropsReady = true;
@@ -537,7 +600,7 @@ public class Game {
         this.liquidMoney += (this.random.nextInt(101) + 50);
       }
 
-      // Updated Probability-Driven Nested Yield Engine for Maturing Speculative Bonds
+      // Probability-Driven Nested Yield Engine for Maturing Speculative Bonds
       if (this.railroadBondOwned) {
         this.bondTimer++;
         if (this.bondTimer >= 20) {
@@ -545,18 +608,14 @@ public class Game {
           int probabilityRoll = this.random.nextInt(100);
 
           if (probabilityRoll < 30) {
-            // Risk curve route logic: Earning small yield or suffering total loss adjustments (-35% up to 10%)
             double rateModifier = -0.35 + (this.random.nextInt(46) * 0.01);
             investmentPayout = this.bondPrincipal * (1.0 + rateModifier);
           } else {
-            // Success curve routes checking high yields
             int nestedYieldRoll = this.random.nextInt(100);
             if (nestedYieldRoll < 80) {
-              // 80% weight tier payout index: 30% to 60% standard profit scale yields
               double yieldRate = 0.30 + (this.random.nextInt(31) * 0.01);
               investmentPayout = this.bondPrincipal * (1.0 + yieldRate);
             } else {
-              // 20% weight tier payout index: 80% to 150% maximum performance scale yields
               double eliteYieldRate = 0.80 + (this.random.nextInt(71) * 0.01);
               investmentPayout = this.bondPrincipal * (1.0 + eliteYieldRate);
             }
@@ -570,14 +629,24 @@ public class Game {
         }
       }
 
-      // Revised valuation variables matching spec updates
+      // Revised valuation variables matching spec updates (Gold buffed to 2.50, Coal buffed to 0.50)
       this.netWorth = this.liquidMoney 
-          + (this.gold * 1.50) 
+          + (this.gold * 2.50) 
           + (this.coal * 0.50) 
           + (this.wheat * 5.0) 
           + (this.cattleGoods * 10.0) 
           + (this.cattleCount * 500.0) 
           + this.bondPrincipal;
+
+      // Verification of End-States
+      if (this.gameLost) {
+        System.out.println("\n========================================================");
+        System.out.println("FAILURE: Creditors have seized your property holdings.");
+        System.out.println("You spent 10 turns in a deficit balance. Game Over.");
+        System.out.println("========================================================");
+        this.isRunning = false;
+        break;
+      }
 
       if (this.railroadBaronPurchased) {
         System.out.println("\n========================================================");
