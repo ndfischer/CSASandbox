@@ -1,721 +1,488 @@
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.Random;
 
 /**
- * Manages the main game loop, world instantiation, command processing, and turn mechanics.
- *
- * Centralizes the application state, coordinates between the Player, Rooms, and Items,
- * and maintains the execution sequence until a win or loss condition is met.
+ * Core simulation logic engine orchestrating game loop state, vocabulary,
+ * spatial navigation, financial ledgers, and turn progression rule sets.
  */
 public class Game {
-  private ArrayList<Room> rooms;
-  private Player player;
-  private boolean playing;
+    // Global Game Flags
+    private boolean cropsReady = false;
+    private boolean resourcesAvailable = false;
+    private boolean membershipBought = false;
+    private boolean t1PickaxeOwned = false;
+    private boolean t2PickaxeOwned = false;
+    private boolean localStoreOwned = false;
+    private boolean railroadBondOwned = false;
+    private boolean loanTaken = false;
+    private boolean loanAvailable = true;
+    private boolean railroadBaronPurchased = false;
+    private boolean gameLost = false;
 
-  // Global Game State Flags & Counters
-  private boolean cropsReady = false;
-  private boolean resourcesAvailable = false;
-  private boolean loanAvailable = true;
-  
-  private int turnCount = 0;
-  private int plantTimer = 0;
-  private int cattleTimer = 0;
-  private int bondTimer = 0;
-  private int loanCooldownTimer = 0;
-  private int debtTimer = 0;
+    // Financial & Resource Counters
+    private double liquidMoney = 50.0;
+    private double gold = 0.0;
+    private double coal = 0.0;
+    private double wheat = 0.0;
+    private double seeds = 3.0;
+    private double plantedSeeds = 0.0;
+    private double cattleCount = 0.0;
+    private double cattleGoods = 0.0;
+    private double bondPrincipal = 0.0;
+    private double turn = 0.0;
 
-  // Temporary loan negotiation states
-  private boolean pendingLoan = false;
-  private double pendingInterestRate = 0.0;
-  private double amountOwed = 0.0;
+    // Specialized Tracking Variables
+    private double activeLoanRate = 0.0;
+    private double loanAccruedInterest = 0.0;
+    private double pendingLoanRate = 0.0;
+    private boolean loanOffered = false;
+    private int debtTurns = 0;
+    private int plantTimer = 0;
+    private int cattleTimer = 0;
+    private int bondTimer = 0;
+    private int loanDenialTimer = 0;
+    private double netWorth = 50.0;
 
-  /**
-   * Constructs the Game instance, initializes the world, and places the player.
-   */
-  public Game() {
-    rooms = new ArrayList<Room>();
-    player = new Player();
-    playing = true;
-    setupWorld();
-  }
+    private ArrayList<Room> rooms;
+    private Player player;
+    private boolean isRunning = true;
+    private Random random;
 
-  /**
-   * Initializes all rooms, items, and connections based exactly on the spec.
-   */
-  private void setupWorld() {
-    Room suttersFort = new Room("Sutter's Fort", "");
-    suttersFort.addItem(new Item("Field", "fixture; target of 'plant seeds'"));
-    
-    Room americanRiver = new Room("American River", "The American River runs cold over dark gravel. A battered tin pan sits on a rock at the bank. Specks of yellow shimmer in the riverbed — you could pan here.");
-    americanRiver.addItem(new Item("Pan", "fixture"));
-    
-    Room sierraMine = new Room("Sierra Mine", "");
-    sierraMine.addItem(new Item("Coal Vein", "fixture; target of 'mine coal'"));
-    sierraMine.addItem(new Item("Gold Vein", "fixture; target of 'mine gold'"));
-    
-    Room californioRancho = new Room("Californio Rancho", "");
-    californioRancho.addItem(new Item("Pasture", "fixture"));
-    
-    Room sacramento = new Room("Sacramento", "The supply town at the confluence of two rivers. Signs point south to the store, north to the newspaper, east to the bank, and west home.");
-    
-    Room brannansStore = new Room("Brannan's Store", "");
-    brannansStore.addItem(new Item("Counter", "fixture; site of all buy and sell actions"));
-    
-    Room dailyAlta = new Room("Daily Alta", "A newsboy hawks copies of the Alta California — you could read one for the date and the headline. A carriage road climbs north toward Nob Hill.");
-    dailyAlta.addItem(new Item("Newspaper", "fixture; target of 'read'"));
-    
-    Room wellsFargo = new Room("Wells Fargo Bank", "The offices of Wells Fargo and Co. Brass railings, heavy ledgers, strongboxes. A teller looks up. 'Need a loan? Just say the word.'");
-    wellsFargo.addItem(new Item("Teller's Window", "fixture; site of 'loan'"));
-    
-    Room sfExchange = new Room("San Francisco Exchange", "");
-    sfExchange.addItem(new Item("Chalkboard", "fixture; site of 'buy store' and 'invest railroad'"));
-    
-    Room bigFourMansion = new Room("Big Four Mansion", "The marble foyer of the Big Four Mansion atop Nob Hill. A lobbyist extends a hand. The leather chair by the window is the Railroad Baron's — for $10,000, you could buy baron status and secure your fortune.");
-    bigFourMansion.addItem(new Item("Baron's Chair", "fixture; target of 'buy baron'"));
-
-    // Set up exits
-    suttersFort.addExit("north", "American River");
-    suttersFort.addExit("east", "Sacramento");
-    suttersFort.addExit("south", "Californio Rancho");
-    suttersFort.addExit("west", "Sierra Mine");
-
-    americanRiver.addExit("south", "Sutter's Fort");
-
-    sierraMine.addExit("east", "Sutter's Fort");
-
-    californioRancho.addExit("north", "Sutter's Fort");
-
-    sacramento.addExit("north", "Daily Alta");
-    sacramento.addExit("east", "Wells Fargo Bank");
-    sacramento.addExit("south", "Brannan's Store");
-    sacramento.addExit("west", "Sutter's Fort");
-
-    brannansStore.addExit("north", "Sacramento");
-
-    dailyAlta.addExit("south", "Sacramento");
-    dailyAlta.addExit("north", "Big Four Mansion"); // Guarded via condition in move logic
-
-    wellsFargo.addExit("west", "Sacramento");
-    wellsFargo.addExit("east", "San Francisco Exchange");
-
-    sfExchange.addExit("west", "Wells Fargo Bank");
-
-    bigFourMansion.addExit("south", "Daily Alta");
-
-    // Add rooms to global list
-    rooms.add(suttersFort);
-    rooms.add(americanRiver);
-    rooms.add(sierraMine);
-    rooms.add(californioRancho);
-    rooms.add(sacramento);
-    rooms.add(brannansStore);
-    rooms.add(dailyAlta);
-    rooms.add(wellsFargo);
-    rooms.add(sfExchange);
-    rooms.add(bigFourMansion);
-
-    player.setCurrentRoom(suttersFort);
-  }
-
-  /**
-   * Starts the input parsing cycle and game simulation loop.
-   */
-  public void start() {
-    Scanner scanner = new Scanner(System.in);
-    System.out.println("Welcome to Gold Rush California.\n");
-
-    while (playing) {
-      player.updateNetWorth();
-      System.out.println("---");
-      System.out.println("[" + player.getCurrentRoom().getName() + "]");
-      
-      System.out.print("> ");
-      String input = scanner.nextLine().trim();
-
-      if (input.isEmpty()) continue;
-      processCommand(input);
-      
-      // Check win condition
-      if (player.isRailroadBaronPurchased()) {
-        System.out.println("You sign the lobbyist's ledger. The chair by the window is yours. California has a new king.");
-        playing = false;
-        break;
-      }
-      
-      // Check lose condition
-      if (debtTimer >= 30) {
-        System.out.println("The bank has foreclosed on your properties. You are ruined. Game Over.");
-        playing = false;
-        break;
-      }
+    public Game() {
+        this.rooms = new ArrayList<>();
+        this.player = new Player();
+        this.random = new Random();
+        this.initializeWorld();
     }
-    scanner.close();
-  }
 
-  /**
-   * Finds a room by name using a manual for-each loop search.
-   *
-   * @param name the exact name of the target room
-   * @return the Room object if found, otherwise null
-   */
-  private Room findRoom(String name) {
-    // Manual loop required - built-in search methods are not allowed per AP CS A constraints
-    for (Room r : rooms) {
-      if (r.getName().equalsIgnoreCase(name)) {
-        return r;
-      }
+    // Accessors needed for contextual description rendering
+    public boolean isCropsReady() { return this.cropsReady; }
+    public boolean isResourcesAvailable() { return this.resourcesAvailable; }
+    public boolean isMembershipBought() { return this.membershipBought; }
+    public boolean isT1PickaxeOwned() { return this.t1PickaxeOwned; }
+    public boolean isT2PickaxeOwned() { return this.t2PickaxeOwned; }
+    public boolean isLocalStoreOwned() { return this.localStoreOwned; }
+    public boolean isRailroadBondOwned() { return this.railroadBondOwned; }
+    public double getCattleCount() { return this.cattleCount; }
+
+    private void initializeWorld() {
+        Room suttersFort = new Room("Sutter's Fort", "");
+        Room americanRiver = new Room("American River", "The American River runs cold over dark gravel. A battered tin pan sits on a rock at the bank. Specks of yellow shimmer in the riverbed — you could pan here.");
+        Room sierraMine = new Room("Sierra Mine", "");
+        Room californioRancho = new Room("Californio Rancho", "");
+        Room Sacramento = new Room("Sacramento", "The supply town at the confluence of two rivers. Signs point south to the store, north to the newspaper, east to the bank, and west home.");
+        Room brannansStore = new Room("Brannan's Store", "");
+        Room dailyAlta = new Room("Daily Alta California", "A newsboy hawks copies of the Alta California — you could read one for the date and the headline. A carriage road climbs north toward Nob Hill.");
+        Room wellsFargo = new Room("Wells Fargo Bank", "The offices of Wells Fargo and Co. Brass railings, heavy ledgers, strongboxes. A teller looks up. 'Need a loan? Just say the word.'");
+        Room sfExchange = new Room("SF Exchange", "");
+        Room bigFourMansion = new Room("Big Four Mansion", "The marble foyer of the Big Four Mansion atop Nob Hill. A lobbyist extends a hand. The leather chair by the window is the Railroad Baron's — for $10,000, you could buy baron status and take that seat.");
+
+        suttersFort.addExit("north", "American River");
+        suttersFort.addExit("east", "Sacramento");
+        suttersFort.addExit("south", "Californio Rancho");
+        suttersFort.addExit("west", "Sierra Mine");
+
+        americanRiver.addExit("south", "Sutter's Fort");
+        sierraMine.addExit("east", "Sutter's Fort");
+        californioRancho.addExit("north", "Sutter's Fort");
+
+        Sacramento.addExit("north", "Daily Alta California");
+        Sacramento.addExit("east", "Wells Fargo Bank");
+        Sacramento.addExit("south", "Brannan's Store");
+        Sacramento.addExit("west", "Sutter's Fort");
+
+        brannansStore.addExit("north", "Sacramento");
+        dailyAlta.addExit("south", "Sacramento");
+        dailyAlta.addExit("north", "Big Four Mansion");
+
+        wellsFargo.addExit("west", "Sacramento");
+        wellsFargo.addExit("east", "SF Exchange");
+        sfExchange.addExit("west", "Wells Fargo Bank");
+        bigFourMansion.addExit("south", "Daily Alta California");
+
+        this.rooms.add(suttersFort); this.rooms.add(americanRiver);
+        this.rooms.add(sierraMine); this.rooms.add(californioRancho);
+        this.rooms.add(Sacramento); this.rooms.add(brannansStore);
+        this.rooms.add(dailyAlta); this.rooms.add(wellsFargo);
+        this.rooms.add(sfExchange); this.rooms.add(bigFourMansion);
+
+        this.player.setCurrentRoom(suttersFort);
     }
-    return null;
-  }
 
-  /**
-   * Converts shortcut keys to full compass directions.
-   *
-   * @param dir the raw direction string
-   * @return the normalized direction string
-   */
-  private String normalizeDirection(String dir) {
-    if (dir.equalsIgnoreCase("w")) return "north";
-    if (dir.equalsIgnoreCase("s")) return "south";
-    if (dir.equalsIgnoreCase("d")) return "east";
-    if (dir.equalsIgnoreCase("a")) return "west";
-    if (dir.equalsIgnoreCase("n")) return "north";
-    if (dir.equalsIgnoreCase("e")) return "east";
-    return dir;
-  }
+    public void start() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Welcome to Gold Rush California!");
+        System.out.println(this.player.getCurrentRoom().getDescription(this));
 
-  /**
-   * Parses the user command and routes it to the correct logic handler.
-   *
-   * @param input the raw string inputted by the user
-   */
-  private void processCommand(String input) {
-    String lowerInput = input.toLowerCase();
-    boolean validAction = false;
-    int turnsToAdvance = 0;
-
-    if (lowerInput.startsWith("go ")) {
-      String direction = normalizeDirection(lowerInput.substring(3));
-      validAction = attemptMove(direction);
-      if (validAction) turnsToAdvance = 1;
-    } 
-    else if (lowerInput.equals("w") || lowerInput.equals("s") || lowerInput.equals("a") || lowerInput.equals("d")) {
-      validAction = attemptMove(normalizeDirection(lowerInput));
-      if (validAction) turnsToAdvance = 1;
-    }
-    else if (lowerInput.equals("help")) {
-      printHelp();
-    } 
-    else if (lowerInput.equals("look")) {
-      System.out.println(player.getCurrentRoom().getDescription(this, player));
-      System.out.print("You see: ");
-      // Manual loop for items
-      ArrayList<Item> items = player.getCurrentRoom().getItems();
-      if (items.size() == 0) {
-        System.out.println("nothing of interest.");
-      } else {
-        for (int i = 0; i < items.size(); i++) {
-          System.out.print(items.get(i).getName() + (i < items.size() - 1 ? ", " : ""));
+        while (this.isRunning) {
+            System.out.print("\n> ");
+            if (!scanner.hasNextLine()) break;
+            String line = scanner.nextLine().trim();
+            if (!line.isEmpty()) {
+                this.processCommand(line);
+            }
         }
-        System.out.println();
-      }
-    } 
-    else if (lowerInput.equals("inventory")) {
-      printInventory();
-    } 
-    else if (lowerInput.equals("mine coal")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Sierra Mine")) {
-        if (player.isT1PickaxeOwned() || player.isT2PickaxeOwned()) {
-          int yield = (int)(Math.random() * 151) + 50; // 50 to 200
-          player.setCoal(player.getCoal() + yield);
-          System.out.println("You swing the pickaxe. Coal cracks loose in chunks.");
-          validAction = true;
-          turnsToAdvance = 5;
-        } else {
-          System.out.println("You have no tool to mine any of it.");
+        scanner.close();
+    }
+
+    private void processCommand(String rawInput) {
+        String lowerInput = rawInput.toLowerCase();
+
+        // Single Character WASD Movement Mappings
+        if (lowerInput.equals("w")) { this.handleMovement("north"); return; }
+        if (lowerInput.equals("s")) { this.handleMovement("south"); return; }
+        if (lowerInput.equals("d")) { this.handleMovement("east"); return; }
+        if (lowerInput.equals("a")) { this.handleMovement("west"); return; }
+
+        if (lowerInput.startsWith("go ")) {
+            this.handleMovement(lowerInput.substring(3).trim());
+            return;
         }
-      } else {
-        System.out.println("You can't do that here.");
-      }
-    }
-    else if (lowerInput.equals("mine gold")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Sierra Mine")) {
-        if (player.isT2PickaxeOwned()) {
-          int yield = (int)(Math.random() * 61) + 20; // 20 to 80
-          player.setGold(player.getGold() + yield);
-          System.out.println("Native gold gleams where the stone shatters.");
-          validAction = true;
-          turnsToAdvance = 5;
-        } else {
-          System.out.println("The gold veins are still out of reach.");
+        if (lowerInput.equals("help")) {
+            System.out.println("Commands: go [direction], w/a/s/d, help, look, inventory, mine coal, mine gold, plant seeds, pan, harvest, collect, read, loan, accept loan, deny loan, pay loan, buy [thing], sell [item], invest railroad [amount]");
+            return;
         }
-      } else {
-        System.out.println("You can't do that here.");
-      }
-    }
-    else if (lowerInput.equals("plant seeds")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Sutter's Fort")) {
-        if (player.getSeeds() > 0 && player.getPlantedSeeds() == 0) {
-          player.setPlantedSeeds(player.getSeeds());
-          player.setSeeds(0);
-          plantTimer = 0;
-          System.out.println("You press the seeds into the tilled soil. Now you wait.");
-          validAction = true;
-          turnsToAdvance = 1;
-        } else {
-          System.out.println("You have no seeds or have already planted.");
+        if (lowerInput.equals("look")) {
+            System.out.println(this.player.getCurrentRoom().getDescription(this));
+            return;
         }
-      } else {
-        System.out.println("You can't do that here.");
-      }
-    }
-    else if (lowerInput.equals("pan")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("American River")) {
-        int yield = (int)(Math.random() * 5) + 1; // 1 to 5
-        player.setGold(player.getGold() + yield);
-        System.out.println("You swirl the pan. A few specks of yellow settle at the bottom.");
-        validAction = true;
-        turnsToAdvance = 1;
-      } else {
-        System.out.println("You can't do that here.");
-      }
-    }
-    else if (lowerInput.equals("harvest")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Sutter's Fort")) {
-        if (cropsReady) {
-          player.setWheat(player.getWheat() + (player.getPlantedSeeds() * 5));
-          player.setSeeds(player.getPlantedSeeds());
-          player.setPlantedSeeds(0);
-          cropsReady = false;
-          System.out.println("You cut the wheat. The next round of seeds is in your hand.");
-          validAction = true;
-          turnsToAdvance = 1;
-        } else {
-          System.out.println("Crops are not ready.");
+        if (lowerInput.equals("inventory")) {
+            System.out.printf("Cash: $%.2f\nGold: %.2fg\nCoal: %.2fg\nWheat: %.2f\nSeeds: %.2f\nCattle Goods: %.2f\n",
+                    this.liquidMoney, this.gold, this.coal, this.wheat, this.seeds, this.cattleGoods);
+            System.out.printf("Owned Status Flags: Membership=%b, Pickaxe=%b, Upgrade=%b, Store Owned=%b, Bond Owned=%b, Loan Taken=%b\n",
+                    this.membershipBought, this.t1PickaxeOwned, this.t2PickaxeOwned, this.localStoreOwned, this.railroadBondOwned, this.loanTaken);
+            return;
         }
-      } else {
-        System.out.println("You can't do that here.");
-      }
-    }
-    else if (lowerInput.equals("collect")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Californio Rancho")) {
-        if (player.getCattleCount() > 0 && resourcesAvailable) {
-          player.setCattleGoods(player.getCattleGoods() + (player.getCattleCount() * 5));
-          resourcesAvailable = false;
-          cattleTimer = 0;
-          System.out.println("The vaqueros load the goods into your wagon.");
-          validAction = true;
-          turnsToAdvance = 1;
-        } else {
-          System.out.println("Nothing to collect right now.");
+
+        String currentRoom = this.player.getCurrentRoom().getName();
+
+        // Interaction Router
+        if (lowerInput.equals("plant seeds")) {
+            if (!currentRoom.equals("Sutter's Fort")) { System.out.println("You can't do that here."); return; }
+            if (this.seeds > 0 && this.plantedSeeds == 0) {
+                this.plantedSeeds = this.seeds;
+                this.seeds = 0;
+                this.plantTimer = 0;
+                System.out.println("You press the seeds into the tilled soil. Now you wait.");
+                this.endTurn(1);
+            } else {
+                System.out.println("No seeds available or crop already growing.");
+            }
+            return;
         }
-      } else {
-        System.out.println("You can't do that here.");
-      }
-    }
-    else if (lowerInput.equals("read")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Daily Alta")) {
-        // Simple manual date math mapping 1849 365-day year
-        int currentDay = turnCount % 365;
-        int currentYear = 1849 + (turnCount / 365);
-        int[] daysInMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-        String[] monthNames = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
-        int monthIdx = 0;
-        int day = currentDay + 1;
-        
-        // Manual loop required - simulating time manually
-        for (int i = 0; i < 12; i++) {
-          if (day > daysInMonth[i]) {
-            day -= daysInMonth[i];
-            monthIdx++;
-          } else {
-            break;
-          }
+        if (lowerInput.equals("harvest")) {
+            if (!currentRoom.equals("Sutter's Fort")) { System.out.println("You can't do that here."); return; }
+            if (this.cropsReady) {
+                this.wheat += (this.plantedSeeds * 5);
+                this.seeds = this.plantedSeeds;
+                this.plantedSeeds = 0;
+                this.cropsReady = false;
+                System.out.println("You cut the wheat. The next round of seeds is in your hand.");
+                this.endTurn(1);
+            } else {
+                System.out.println("There is nothing ready to harvest.");
+            }
+            return;
         }
-        
-        System.out.println(monthNames[monthIdx] + " " + day + ", " + currentYear + " - GOLD FEVER SWEEPS THE NATION!");
-        // Does not advance turn
-      } else {
-        System.out.println("You can't do that here.");
-      }
-    }
-    else if (lowerInput.equals("loan")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Wells Fargo Bank")) {
-        if (!player.isLoanTaken() && loanAvailable) {
-          pendingLoan = true;
-          pendingInterestRate = 0.10 + (Math.random() * 0.10); // 10% to 20%
-          System.out.println("The teller offers $1000 at " + (int)(pendingInterestRate * 100) + "% interest. Type 'accept loan' or 'deny loan'.");
-        } else {
-          System.out.println("You already have a loan or must wait before applying again.");
+        if (lowerInput.equals("pan")) {
+            if (!currentRoom.equals("American River")) { System.out.println("You can't do that here."); return; }
+            int panned = this.random.nextInt(5) + 1;
+            this.gold += panned;
+            System.out.println("You swirl the pan. A few specks of yellow settle at the bottom.");
+            this.endTurn(1);
+            return;
         }
-      } else {
-        System.out.println("You can't do that here.");
-      }
-    }
-    else if (lowerInput.equals("accept loan")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Wells Fargo Bank") && pendingLoan) {
-        player.setLiquidMoney(player.getLiquidMoney() + 1000);
-        player.setLoanTaken(true);
-        amountOwed = 1000;
-        pendingLoan = false;
-        System.out.println("The teller counts out a thousand dollars and stamps the ledger.");
-        validAction = true;
-        turnsToAdvance = 1;
-      } else {
-        System.out.println("No pending loan offer.");
-      }
-    }
-    else if (lowerInput.equals("deny loan")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Wells Fargo Bank") && pendingLoan) {
-        pendingLoan = false;
-        loanAvailable = false;
-        loanCooldownTimer = 0;
-        System.out.println("You walk away from the teller's window.");
-      } else {
-        System.out.println("No pending loan offer.");
-      }
-    }
-    else if (lowerInput.equals("pay loan")) {
-      if (player.getCurrentRoom().getName().equalsIgnoreCase("Wells Fargo Bank")) {
-        if (player.isLoanTaken()) {
-          if (player.getLiquidMoney() >= amountOwed) {
-            player.setLiquidMoney(player.getLiquidMoney() - amountOwed);
-            player.setLoanTaken(false);
-            amountOwed = 0;
-            debtTimer = 0;
-            System.out.println("You hand the teller your dues and he thanks you for your business.");
-            validAction = true;
-            turnsToAdvance = 1;
-          } else {
-            System.out.println("You don't have enough to pay off the balance of $" + amountOwed);
-          }
-        } else {
-          System.out.println("You don't owe any money.");
+        if (lowerInput.equals("mine coal")) {
+            if (!currentRoom.equals("Sierra Mine")) { System.out.println("You can't do that here."); return; }
+            if (this.t1PickaxeOwned || this.t2PickaxeOwned) {
+                int mined = this.random.nextInt(151) + 50;
+                this.coal += mined;
+                System.out.println("You swing the pickaxe. Coal cracks loose in chunks.");
+                this.endTurn(5);
+            } else {
+                System.out.println("You have no tool to mine any of it.");
+            }
+            return;
         }
-      } else {
-        System.out.println("You can't do that here.");
-      }
-    }
-    else if (lowerInput.startsWith("buy ")) {
-      processBuy(lowerInput.substring(4));
-      // Assume successful buys consume a turn for balance logic, though spec doesn't mandate it. We'll advance 1 turn.
-      validAction = true;
-      turnsToAdvance = 1;
-    }
-    else if (lowerInput.startsWith("sell ")) {
-      processSell(lowerInput.substring(5));
-      validAction = true;
-      turnsToAdvance = 1;
-    }
-    else if (lowerInput.startsWith("invest railroad ")) {
-      try {
-        double amt = Double.parseDouble(lowerInput.substring(16));
-        processInvest(amt);
-        validAction = true;
-        turnsToAdvance = 1;
-      } catch (Exception e) {
-        System.out.println("Invalid amount.");
-      }
-    }
-    else if (lowerInput.equals("quit")) {
-      playing = false;
-    }
-    else {
-      System.out.println("You can't do that here. Type 'help' for a list of commands.");
+        if (lowerInput.equals("mine gold")) {
+            if (!currentRoom.equals("Sierra Mine")) { System.out.println("You can't do that here."); return; }
+            if (this.t2PickaxeOwned) {
+                int mined = this.random.nextInt(61) + 20;
+                this.gold += mined;
+                System.out.println("Native gold gleams where the stone shatters.");
+                this.endTurn(5);
+            } else {
+                System.out.println("The gold veins are still too hard to crack.");
+            }
+            return;
+        }
+        if (lowerInput.equals("collect")) {
+            if (!currentRoom.equals("Californio Rancho")) { System.out.println("You can't do that here."); return; }
+            if (this.cattleCount > 0 && this.resourcesAvailable) {
+                this.cattleGoods += (this.cattleCount * 5);
+                this.resourcesAvailable = false;
+                this.cattleTimer = 0;
+                System.out.println("The vaqueros load the goods into your wagon.");
+                this.endTurn(1);
+            } else {
+                System.out.println("No resources are currently available to collect.");
+            }
+            return;
+        }
+        if (lowerInput.equals("read")) {
+            if (!currentRoom.equals("Daily Alta California")) { System.out.println("You can't do that here."); return; }
+            int day = ((int)this.turn) + 1;
+            System.out.println("Daily Alta California — Day " + day + ", 1849");
+            System.out.println("Headline: Markets boom as expansion west pushes forward across California!");
+            return;
+        }
+        if (lowerInput.equals("loan")) {
+            if (!currentRoom.equals("Wells Fargo Bank")) { System.out.println("You can't do that here."); return; }
+            if (this.loanTaken) {
+                System.out.println("You already have an outstanding loan balance.");
+                return;
+            }
+            if (!this.loanAvailable) {
+                System.out.println("The bank refuses to extend credit lines at this structural cycle.");
+                return;
+            }
+            this.pendingLoanRate = 0.10 + (this.random.nextInt(11) * 0.01); // 10% to 20%
+            this.loanOffered = true;
+            System.out.printf("The teller offers a $1000 principal at an interest calculation rate of %.0f%%. Type 'accept loan' or 'deny loan'.\n", (this.pendingLoanRate * 100));
+            return;
+        }
+        if (lowerInput.equals("accept loan")) {
+            if (!currentRoom.equals("Wells Fargo Bank") || !this.loanOffered) { System.out.println("You can't do that here."); return; }
+            this.liquidMoney += 1000.0;
+            this.activeLoanRate = this.pendingLoanRate;
+            this.loanTaken = true;
+            this.loanOffered = false;
+            this.loanAccruedInterest = 0.0;
+            System.out.println("The teller counts out a thousand dollars and stamps the ledger.");
+            this.endTurn(1);
+            return;
+        }
+        if (lowerInput.equals("deny loan")) {
+            if (!currentRoom.equals("Wells Fargo Bank") || !this.loanOffered) { System.out.println("You can't do that here."); return; }
+            this.loanAvailable = false;
+            this.loanOffered = false;
+            this.loanDenialTimer = 0;
+            System.out.println("You deny the offer. You will be able to request a new loan in 7 turns.");
+            this.endTurn(1);
+            return;
+        }
+        if (lowerInput.equals("pay loan")) {
+            if (!currentRoom.equals("Wells Fargo Bank")) { System.out.println("You can't do that here."); return; }
+            if (!this.loanTaken) {
+                System.out.println("You do not currently have a loan outstanding.");
+                return;
+            }
+            double debtRepaymentTotal = 1000.0 + this.loanAccruedInterest;
+            if (this.liquidMoney >= debtRepaymentTotal) {
+                this.liquidMoney -= debtRepaymentTotal;
+                this.loanTaken = false;
+                this.loanAccruedInterest = 0.0;
+                this.activeLoanRate = 0.0;
+                System.out.println("You hand the teller your dues and he thanks you for your business.");
+                this.endTurn(1);
+            } else {
+                System.out.printf("You do not possess enough liquid asset reserves to pay back the loan total ($%.2f).\n", debtRepaymentTotal);
+            }
+            return;
+        }
+        if (lowerInput.startsWith("buy ")) {
+            String choice = lowerInput.substring(4).trim();
+            this.executePurchase(choice, currentRoom);
+            return;
+        }
+        if (lowerInput.startsWith("sell ")) {
+            if (!currentRoom.equals("Brannan's Store")) { System.out.println("You can't do that here."); return; }
+            String choice = lowerInput.substring(5).trim();
+            this.executeSale(choice);
+            return;
+        }
+        if (lowerInput.startsWith("invest railroad ")) {
+            if (!currentRoom.equals("SF Exchange")) { System.out.println("You can't do that here."); return; }
+            if (this.railroadBondOwned) { System.out.println("You already hold an active railroad investment certificate."); return; }
+            try {
+                double amount = Double.parseDouble(lowerInput.substring(16).trim());
+                if (amount > 0 && this.liquidMoney >= amount) {
+                    this.liquidMoney -= amount;
+                    this.bondPrincipal = amount;
+                    this.railroadBondOwned = true;
+                    this.bondTimer = 0;
+                    System.out.println("You buy a bond on the Central Pacific. The clerk seals it with red wax.");
+                    this.endTurn(1);
+                } else {
+                    System.out.println("Invalid allocation volume entry.");
+                }
+            } catch (Exception ex) {
+                System.out.println("Invalid asset amount string signature.");
+            }
+            return;
+        }
+
+        System.out.println("You can't do that here. Type 'help' for a list of commands.");
     }
 
-    // Apply per-turn mechanics based on successful actions
-    if (validAction && turnsToAdvance > 0) {
-      // Manual loop to process multi-turn actions correctly
-      for (int i = 0; i < turnsToAdvance; i++) {
-        processTurn();
-      }
-    }
-  }
-
-  /**
-   * Processes purchases based on the given argument.
-   *
-   * @param item the string of the item to buy
-   */
-  private void processBuy(String item) {
-    String roomName = player.getCurrentRoom().getName();
-
-    if (item.equals("membership") && roomName.equalsIgnoreCase("Brannan's Store")) {
-      if (player.getLiquidMoney() >= 100 && !player.isMembershipBought()) {
-        player.setLiquidMoney(player.getLiquidMoney() - 100);
-        player.setMembershipBought(true);
-        System.out.println("Brannan slides a brass token across the counter.");
-      } else {
-        System.out.println("Cannot buy membership.");
-      }
-    }
-    else if (item.equals("pickaxe") && roomName.equalsIgnoreCase("Brannan's Store")) {
-      if (player.isMembershipBought() && player.getLiquidMoney() >= 50 && !player.isT1PickaxeOwned()) {
-        player.setLiquidMoney(player.getLiquidMoney() - 50);
-        player.setT1PickaxeOwned(true);
-        System.out.println("Brannan hands you a heavy iron pickaxe.");
-      } else {
-        System.out.println("Cannot buy pickaxe.");
-      }
-    }
-    else if (item.equals("upgrade") && roomName.equalsIgnoreCase("Brannan's Store")) {
-      if (player.isMembershipBought() && player.isT1PickaxeOwned() && player.getLiquidMoney() >= 500 && !player.isT2PickaxeOwned()) {
-        player.setLiquidMoney(player.getLiquidMoney() - 500);
-        player.setT2PickaxeOwned(true);
-        System.out.println("Brannan unwraps a steel-tipped beauty from oilcloth.");
-      } else {
-        System.out.println("Cannot buy upgrade.");
-      }
-    }
-    else if (item.equals("cattle") && roomName.equalsIgnoreCase("Brannan's Store")) {
-      if (player.isMembershipBought() && player.getLiquidMoney() >= 500) {
-        player.setLiquidMoney(player.getLiquidMoney() - 500);
-        if (player.getCattleCount() == 0) cattleTimer = 0;
-        player.setCattleCount(player.getCattleCount() + 1);
-        System.out.println("A vaquero drives your new beast south toward the Rancho.");
-      } else {
-        System.out.println("Cannot buy cattle.");
-      }
-    }
-    else if (item.equals("seeds") && roomName.equalsIgnoreCase("Brannan's Store")) {
-      if (player.isMembershipBought() && player.getLiquidMoney() >= 1) {
-        player.setLiquidMoney(player.getLiquidMoney() - 1);
-        player.setSeeds(player.getSeeds() + 1);
-        System.out.println("Brannan scoops the seeds into a burlap pouch.");
-      } else {
-        System.out.println("Cannot buy seeds.");
-      }
-    }
-    else if (item.equals("store") && roomName.equalsIgnoreCase("San Francisco Exchange")) {
-      if (player.getLiquidMoney() >= 5000 && !player.isLocalStoreOwned()) {
-        player.setLiquidMoney(player.getLiquidMoney() - 5000);
-        player.setLocalStoreOwned(true);
-        System.out.println("You sign the deed. A storefront on Montgomery Street is yours.");
-      } else {
-        System.out.println("Cannot buy store.");
-      }
-    }
-    else if (item.equals("baron") && roomName.equalsIgnoreCase("Big Four Mansion")) {
-      if (player.getLiquidMoney() >= 10000) {
-        player.setLiquidMoney(player.getLiquidMoney() - 10000);
-        player.setRailroadBaronPurchased(true);
-      } else {
-        System.out.println("You don't have enough money.");
-      }
-    }
-    else {
-      System.out.println("You can't do that here.");
-    }
-  }
-
-  /**
-   * Processes the selling of inventory items based on argument.
-   *
-   * @param item the string of the item to sell
-   */
-  private void processSell(String item) {
-    if (!player.getCurrentRoom().getName().equalsIgnoreCase("Brannan's Store")) {
-      System.out.println("You can't do that here.");
-      return;
-    }
-
-    if (!player.isMembershipBought()) {
-      System.out.println("You can't buy until you've paid your dues.");
-    }
-
-    boolean sold = false;
-    if (item.equals("gold") && player.getGold() >= 1) {
-      player.setLiquidMoney(player.getLiquidMoney() + (player.getGold() * 2.50));
-      player.setGold(0);
-      sold = true;
-    } else if (item.equals("coal") && player.getCoal() >= 1) {
-      player.setLiquidMoney(player.getLiquidMoney() + (player.getCoal() * 0.50));
-      player.setCoal(0);
-      sold = true;
-    } else if (item.equals("wheat") && player.getWheat() >= 1) {
-      player.setLiquidMoney(player.getLiquidMoney() + (player.getWheat() * 5.0));
-      player.setWheat(0);
-      sold = true;
-    } else if (item.equals("goods") && player.getCattleGoods() >= 1) {
-      player.setLiquidMoney(player.getLiquidMoney() + (player.getCattleGoods() * 10.0));
-      player.setCattleGoods(0);
-      sold = true;
-    }
-
-    if (sold) {
-      System.out.println("Brannan counts coins onto the counter.");
-    } else {
-      System.out.println("You have nothing to sell of that type.");
-    }
-  }
-
-  /**
-   * Processes investing in a railroad bond.
-   *
-   * @param amount the double value to invest
-   */
-  private void processInvest(double amount) {
-    if (!player.getCurrentRoom().getName().equalsIgnoreCase("San Francisco Exchange")) {
-      System.out.println("You can't do that here.");
-      return;
-    }
-    if (amount > 0 && player.getLiquidMoney() >= amount && !player.isRailroadBondOwned()) {
-      player.setLiquidMoney(player.getLiquidMoney() - amount);
-      player.setRailroadBondOwned(true);
-      player.setBondPrincipal(amount);
-      bondTimer = 0;
-      System.out.println("You buy a bond on the Central Pacific. The clerk seals it in an envelope.");
-    } else {
-      System.out.println("Cannot invest that amount.");
-    }
-  }
-
-  /**
-   * Attempts to move the player through exits mapped to strings.
-   *
-   * @param direction the resolved string direction
-   * @return true if movement succeeded, false otherwise
-   */
-  private boolean attemptMove(String direction) {
-    Room current = player.getCurrentRoom();
-    ArrayList<String> exits = current.getExits();
-    
-    // Manual loop required
-    for (int i = 0; i < exits.size(); i++) {
-      String mapping = exits.get(i);
-      String[] parts = mapping.split(":");
-      if (parts[0].equalsIgnoreCase(direction)) {
-        String destName = parts[1];
-        
-        // Special condition check for Big Four Mansion
-        if (destName.equalsIgnoreCase("Big Four Mansion")) {
-          player.updateNetWorth();
-          if (player.getNetWorth() < 10000) {
+    private void handleMovement(String direction) {
+        Room current = this.player.getCurrentRoom();
+        String target = current.getExit(direction);
+        if (target == null) {
+            System.out.println("You can't go that way.");
+            return;
+        }
+        if (target.equals("Big Four Mansion") && this.netWorth < 10000.0) {
             System.out.println("The doorman waves you off. 'Come back when you're somebody, friend.'");
-            return false;
-          }
+            return;
         }
-        
-        Room destination = findRoom(destName);
-        if (destination != null) {
-          player.setCurrentRoom(destination);
-          System.out.println("You head " + direction + " to " + destName + ".");
-          return true;
+        for (Room r : this.rooms) {
+            if (r.getName().equalsIgnoreCase(target)) {
+                this.player.setCurrentRoom(r);
+                System.out.println("Moved to " + r.getName() + ".");
+                System.out.println(r.getDescription(this));
+                this.endTurn(1);
+                return;
+            }
         }
-      }
-    }
-    System.out.println("You can't go that way.");
-    return false;
-  }
-
-  /**
-   * Executes game world timers and triggers mechanics for one single discrete turn.
-   */
-  private void processTurn() {
-    turnCount++;
-
-    // 2. Crop processing
-    if (player.getPlantedSeeds() > 0 && !cropsReady) {
-      plantTimer++;
-      if (plantTimer >= 5) {
-        cropsReady = true;
-      }
     }
 
-    // 3. Cattle processing
-    if (player.getCattleCount() > 0 && !resourcesAvailable) {
-      cattleTimer++;
-      if (cattleTimer >= 10) {
-        resourcesAvailable = true;
-      }
-    }
-
-    // 4. Local store passive income
-    if (player.isLocalStoreOwned()) {
-      int passive = (int)(Math.random() * 101) + 50; // 50 to 150
-      player.setLiquidMoney(player.getLiquidMoney() + passive);
-    }
-
-    // 5. Railroad bond maturation based on spec logic rules
-    if (player.isRailroadBondOwned()) {
-      bondTimer++;
-      if (bondTimer >= 20) {
-        double p = player.getBondPrincipal();
-        double earnings = 0.0;
-        int roll = (int)(Math.random() * 100) + 1; // 1 to 100
-        
-        if (roll <= 30) {
-          double multiplier = 1.10 + (Math.random() * 0.25); // 10% to 35%
-          earnings = p * multiplier;
+    private void executePurchase(String product, String currentRoom) {
+        if (currentRoom.equals("Brannan's Store")) {
+            if (!this.membershipBought && !product.equals("membership")) {
+                System.out.println("Members only, friend. You can sell to me, but you can't buy until you've paid your dues.");
+                return;
+            }
+            if (product.equals("membership")) {
+                if (!this.membershipBought && this.liquidMoney >= 100.0) {
+                    this.liquidMoney -= 100.0; this.membershipBought = true;
+                    System.out.println("Brannan slides a brass token across the counter.");
+                    this.endTurn(1);
+                } else { System.out.println("Cannot process membership transaction requirements."); }
+            } else if (product.equals("pickaxe")) {
+                if (!this.t1PickaxeOwned && this.liquidMoney >= 50.0) {
+                    this.liquidMoney -= 50.0; this.t1PickaxeOwned = true;
+                    System.out.println("Brannan hands you a heavy iron pickaxe.");
+                    this.endTurn(1);
+                } else { System.out.println("Cannot execute pickaxe asset purchase."); }
+            } else if (product.equals("upgrade")) {
+                if (this.t1PickaxeOwned && !this.t2PickaxeOwned && this.liquidMoney >= 500.0) {
+                    this.liquidMoney -= 500.0; this.t2PickaxeOwned = true;
+                    System.out.println("Brannan unwraps a steel-tipped beauty from oilcloth.");
+                    this.endTurn(1);
+                } else { System.out.println("Upgrade requirements unfulfilled."); }
+            } else if (product.equals("cattle")) {
+                if (this.liquidMoney >= 500.0) {
+                    this.liquidMoney -= 500.0;
+                    if (this.cattleCount == 0) this.cattleTimer = 0;
+                    this.cattleCount += 1.0;
+                    System.out.println("A vaquero drives your new beast south toward the Rancho.");
+                    this.endTurn(1);
+                } else { System.out.println("Insufficient funds."); }
+            } else if (product.equals("seeds")) {
+                if (this.liquidMoney >= 1.0) {
+                    this.liquidMoney -= 1.0; this.seeds += 1.0;
+                    System.out.println("Brannan scoops the seeds into a burlap pouch.");
+                    this.endTurn(1);
+                } else { System.out.println("Insufficient funds."); }
+            } else { System.out.println("Brannan does not sell that item."); }
+        } else if (currentRoom.equals("SF Exchange") && product.equals("store")) {
+            if (!this.localStoreOwned && this.liquidMoney >= 5000.0) {
+                this.liquidMoney -= 5000.0; this.localStoreOwned = true;
+                System.out.println("You sign the deed. A storefront on Montgomery Street is yours.");
+                this.endTurn(1);
+            } else { System.out.println("Store asset option unavailable or capital insufficient."); }
+        } else if (currentRoom.equals("Big Four Mansion") && product.equals("baron")) {
+            if (this.liquidMoney >= 10000.0) {
+                this.liquidMoney -= 10000.0; this.railroadBaronPurchased = true;
+                System.out.println("You sign the lobbyist's ledger. The chair by the window is yours. California has a new king.");
+                this.endTurn(1);
+            } else { System.out.println("You lack the required $10,000 cash execution requirement."); }
         } else {
-          int coin = (int)(Math.random() * 2);
-          if (coin == 0) {
-            earnings = p * 1.75;
-          } else {
-            earnings = p * 2.35;
-          }
+            System.out.println("That transaction configuration cannot be completed here.");
         }
-        
-        player.setLiquidMoney(player.getLiquidMoney() + earnings);
-        System.out.println("Your railroad bond matured! It yielded a return of $" + (int)earnings);
-        player.setRailroadBondOwned(false);
-        player.setBondPrincipal(0);
-        bondTimer = 0;
-      }
     }
 
-    // Loan processing logic (interest & cooldown)
-    if (player.isLoanTaken()) {
-      debtTimer++;
-      if (debtTimer % 10 == 0) {
-        amountOwed += amountOwed * pendingInterestRate;
-        System.out.println("Notice: Bank interest applied. You now owe $" + (int)amountOwed);
-      }
+    private void executeSale(String item) {
+        if (item.equals("gold") && this.gold >= 1.0) {
+            this.liquidMoney += (this.gold * 2.50); this.gold = 0;
+            System.out.println("Brannan counts coins onto the counter."); this.endTurn(1);
+        } else if (item.equals("coal") && this.coal >= 1.0) {
+            this.liquidMoney += (this.coal * 0.50); this.coal = 0;
+            System.out.println("Brannan counts coins onto the counter."); this.endTurn(1);
+        } else if (item.equals("wheat") && this.wheat >= 1.0) {
+            this.liquidMoney += (this.wheat * 5.0); this.wheat = 0;
+            System.out.println("Brannan counts coins onto the counter."); this.endTurn(1);
+        } else if (item.equals("goods") && this.cattleGoods >= 1.0) {
+            this.liquidMoney += (this.cattleGoods * 10.0); this.cattleGoods = 0;
+            System.out.println("Brannan counts coins onto the counter."); this.endTurn(1);
+        } else {
+            System.out.println("You do not hold inventory blocks of that asset category.");
+        }
     }
 
-    if (!loanAvailable && !pendingLoan && !player.isLoanTaken()) {
-      loanCooldownTimer++;
-      if (loanCooldownTimer >= 7) {
-        loanAvailable = true;
-      }
+    private void endTurn(int elapsed) {
+        for (int i = 0; i < elapsed; i++) {
+            this.turn += 1.0;
+
+            if (!this.loanAvailable) {
+                this.loanDenialTimer++;
+                if (this.loanDenialTimer >= 7) { this.loanAvailable = true; this.loanDenialTimer = 0; }
+            }
+            if (this.loanTaken && ((int)this.turn) % 10 == 0) {
+                this.loanAccruedInterest += (1000.0 * this.activeLoanRate);
+            }
+            if (this.liquidMoney < 0.0) {
+                this.debtTurns++;
+                if (this.debtTurns >= 10) { this.gameLost = true; }
+            } else {
+                this.debtTurns = 0;
+            }
+            if (this.plantedSeeds > 0 && !this.cropsReady) {
+                this.plantTimer++;
+                if (this.plantTimer >= 5) this.cropsReady = true;
+            }
+            if (this.cattleCount > 0 && !this.resourcesAvailable) {
+                this.cattleTimer++;
+                if (this.cattleTimer >= 10) this.resourcesAvailable = true;
+            }
+            if (this.localStoreOwned) {
+                this.liquidMoney += (this.random.nextInt(101) + 50);
+            }
+            if (this.railroadBondOwned) {
+                this.bondTimer++;
+                if (this.bondTimer >= 20) {
+                    double outputPayout = 0.0;
+                    int roll = this.random.nextInt(100);
+                    if (roll < 30) {
+                        double variant = 0.10 + (this.random.nextInt(26) * 0.01); // 10% to 35%
+                        outputPayout = this.bondPrincipal * (1.0 + variant);
+                    } else {
+                        if (this.random.nextBoolean()) {
+                            outputPayout = this.bondPrincipal * 1.75; // Earn 75%
+                        } else {
+                            outputPayout = this.bondPrincipal * 2.35; // Earn 135% (multiply principal by 2.35)
+                        }
+                    }
+                    this.liquidMoney += outputPayout;
+                    System.out.printf("\n[BOND MARKET NOTIFIER] Investment contract matured yielding $%.2f cash payout.\n", outputPayout);
+                    this.railroadBondOwned = false; this.bondPrincipal = 0.0; this.bondTimer = 0;
+                }
+            }
+
+            this.netWorth = this.liquidMoney + (this.gold * 2.50) + (this.coal * 0.50) + (this.wheat * 5.0) + (this.cattleGoods * 10.0) + (this.cattleCount * 500.0) + this.bondPrincipal;
+
+            if (this.gameLost) {
+                System.out.println("DEFEAT BALANCE OUTCOME REACHED: You spent 10 consecutive turns in debt. The commercial courts declare you bankrupt.");
+                this.isRunning = false;
+                return;
+            }
+            if (this.railroadBaronPurchased) {
+                System.out.println("VICTORY ACHIEVEMENT MET: You take your seat at the Big Four Mansion window as a Railroad Baron. California is yours!");
+                this.isRunning = false;
+                return;
+            }
+        }
     }
-  }
-
-  /**
-   * Prints the available command list.
-   */
-  private void printHelp() {
-    System.out.println("Available commands: go [direction], look, inventory, mine coal, mine gold, plant seeds, pan, harvest, collect, read, loan, accept loan, deny loan, pay loan, buy [thing], sell [item], invest railroad [amount], w, a, s, d, quit.");
-  }
-
-  /**
-   * Prints out the player's counters and flag states.
-   */
-  private void printInventory() {
-    player.updateNetWorth();
-    System.out.println("Counters:");
-    System.out.println("  Liquid Money: $" + player.getLiquidMoney());
-    System.out.println("  Gold: " + player.getGold() + "g");
-    System.out.println("  Coal: " + player.getCoal() + "g");
-    System.out.println("  Wheat: " + player.getWheat() + " units");
-    System.out.println("  Seeds: " + player.getSeeds() + " units");
-    System.out.println("  Cattle Goods: " + player.getCattleGoods() + " units");
-    System.out.println("  Net Worth: $" + player.getNetWorth());
-    System.out.println("Owned Flags:");
-    System.out.println("  Membership: " + player.isMembershipBought());
-    System.out.println("  T1 Pickaxe: " + player.isT1PickaxeOwned());
-    System.out.println("  T2 Pickaxe: " + player.isT2PickaxeOwned());
-    System.out.println("  Local Store Deed: " + player.isLocalStoreOwned());
-    System.out.println("  Railroad Bond: " + player.isRailroadBondOwned());
-    System.out.println("  Loan Active: " + player.isLoanTaken());
-  }
-
-  // Allow room to get global game flags easily
-  /** @return if crops are ready */
-  public boolean isCropsReady() { return cropsReady; }
-  /** @return if resources are available */
-  public boolean isResourcesAvailable() { return resourcesAvailable; }
-  /** @return debt timer counter */
-  public int getDebtTimer() { return debtTimer; }
 }
