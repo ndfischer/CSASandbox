@@ -308,12 +308,13 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 6. **Wells Fargo Bank** - Loan. (`liquidMoney += 1000`, `loanTaken = True`) Go west, south.
 7. **Brannan's Store** - Sell wheat. (`wheat = 0`) Buy Membership ($100). (`membershipBought = True`) Buy Pickaxe ($50). (`t1PickaxeOwned = True`) Go north, west, west.
 8. **Sierra Mine** - Use Pickaxe on Coal Vein. (`coal` increases by 50-200 over 5 turns) Go east, east, south.
-9. **Brannan's Store** - Sell coal. Repeat steps 6-7 until you can afford the upgrade. Buy Upgrade ($500). (`t2PickaxeOwned = True`)
-10. **Brannan's Store** - Buy Cattle (optional) ($100). (`cattleCount = 1`, `cattleTimer = 0`) Go north, east, east.
-11. **SF Exchange** - Once `liquidMoney >= 5000`, Buy Store. (optional) (`localStoreOwned = True`) Invest Railroad. (`railroadBondOwned = True`) Go west, west, west, west.
-12. **Sierra Mine** - Mine gold. (`gold` increases by 20-80 over 5 turns) Cycle mine-and-sell and collect-and-sell to grow `netWorth`, while investing in railroads
-13. **Daily Alta** - Once `netWorth >= 10000`, go north.
-14. **Big Four Mansion** - Buy Baron once `liquidMoney >= 10000`. (`railroadBaronPurchased = True`) You win.
+9. **Brannan's Store** - Sell coal. Repeat steps 6-7 until you can afford the upgrade. Buy Upgrade ($500). (`t2PickaxeOwned = True`) Go north, go west, go east, go east.
+10. **Wells Frago Bank** - Repay loan. Go south, go east, go west, go west.
+11. **Brannan's Store** - Buy Cattle (optional) ($100). (`cattleCount = 1`, `cattleTimer = 0`) Go north, east, east.
+12. **SF Exchange** - Once `liquidMoney >= 5000`, Buy Store. (optional) (`localStoreOwned = True`) Invest Railroad. (`railroadBondOwned = True`) Go west, west, west, west.
+13. **Sierra Mine** - Mine gold. (`gold` increases by 20-80 over 5 turns) Cycle mine-and-sell and collect-and-sell to grow `netWorth`, while investing in railroads
+14. **Daily Alta** - Once `netWorth >= 10000`, go north.
+15. **Big Four Mansion** - Buy Baron once `liquidMoney >= 10000`. (`railroadBaronPurchased = True`) You win.
 
 ---
 
