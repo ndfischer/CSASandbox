@@ -1,15 +1,13 @@
-// --- FILE: Wheat.java ---
 /**
- * Represents wheat crops in the game.
+ * Represents Wheat harvested by the player.
  *
- * Extends Crop with a specific sell price and description. It represents
- * the physical wheat grown at Sutter's Fort.
+ * Extends Crop with specific pricing for wheat.
  */
 public class Wheat extends Crop {
   /**
-   * Constructs a new Wheat item with predefined values.
+   * Constructs the default Wheat crop item.
    */
   public Wheat() {
-    super("Wheat", "Golden, ripe wheat stalks.", 5);
+    super("Wheat", "Golden harvested wheat.", 5);
   }
 }
