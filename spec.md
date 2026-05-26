@@ -32,15 +32,19 @@ The game accepts only the verbs listed below. Any other input prints: "You can't
 - `help` — list every command in this vocabulary.
 - `look` — reprint the current room's description.
 - `inventory` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan).
-- `use [item] on [target]` — trigger an interaction (e.g. "use seeds on field", "use pickaxe on coal vein").
+- `mine coal` — triggers the coal mining interaction
+- `mine gold` — triggers the gold mining interaction
+- `plant seeds` — uses seeds on field
 - `pan` — pan for gold (American River only).
 - `harvest` — cut ready wheat (Sutter's Fort only).
 - `collect` — gather cattle goods (Californio Rancho only).
 - `read` — read the newspaper (Daily Alta only).
-- `loan` — take the one-time bank loan (Wells Fargo only).
+- `loan` — request a loan (can only take one at a time) with a random (5-15%) interest rate. Interest calculated every 10 turns (Wells Fargo only).
+- `accept loan` — accept the loan that Wells Fargo offers. (Wells Fargo only)
+- `deny loan` — deny the loan that Wells Fargo offers. You will be able to request a new loan in 7 turns. (Wells Fargo only)
 - `buy [thing]` — purchase. Valid things: `membership`, `pickaxe`, `upgrade`, `cattle`, `seeds`, `store`, `baron`.
 - `sell [item]` — sell stock. Valid items: `gold`, `coal`, `wheat`, `goods`.
-- `invest railroad [amount]` — buy a railroad bond (SF Exchange only).
+- `invest railroad [amount]` — buy a railroad bond. Railroad bonds have randomized returns (SF Exchange only).
 
 Commands are case-insensitive. Commands valid only in certain rooms print "You can't do that here." if attempted elsewhere.
 
@@ -53,11 +57,12 @@ Commands are case-insensitive. Commands valid only in certain rooms print "You c
 - `cropsReady`: Default (False) - Becomes True when `plantTimer` reaches 5. Allows harvest and changes Sutter's Fort description.
 - `resourcesAvailable`: Default (False) - Becomes True when `cattleTimer` reaches 10. Allows collect and changes Californio Rancho description.
 - `membershipBought`: Default (False) - Becomes True via "buy membership". Unlocks Brannan's buy actions and changes the store description.
-- `t1PickaxeOwned`: Default (False) - Becomes True via "buy pickaxe". Enables "Use Pickaxe on Coal Vein" and changes Sierra Mine description.
-- `t2PickaxeOwned`: Default (False) - Becomes True via "buy upgrade". Enables "Use Pickaxe on Gold Vein" and changes Sierra Mine description.
+- `t1PickaxeOwned`: Default (False) - Becomes True via "buy pickaxe". Enables "mine coal" and changes Sierra Mine description.
+- `t2PickaxeOwned`: Default (False) - Becomes True via "buy upgrade". Enables "mine gold" and changes Sierra Mine description.
 - `localStoreOwned`: Default (False) - Becomes True via "buy store". Adds $50-$150 to `liquidMoney` each turn and changes SF Exchange description.
 - `railroadBondOwned`: Default (False) - Becomes True via "invest railroad". Starts `bondTimer` and changes SF Exchange description.
 - `loanTaken`: Default (False) - Becomes True via "loan". Prevents the one-time loan from being taken twice.
+- `loanAvailable`: Default (True) - Becomes false when the player denies a loan. Becomes true again after 7 turns.
 - `railroadBaronPurchased`: Default (False) - Win Condition. Becomes True via "buy baron". Ends the game in victory.
 
 **Counters** (driven by interaction logic; all are doubles; defaults shown):
@@ -88,7 +93,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 ### Sutter's Fort (START)
 - **Description (`cropsReady == False`):** "Timber walls enclose a patch of tilled soil. To the north lies the American River; east, Sacramento. The year is 1849. Your fields lie quiet — if you had seeds, you could use them on the field."
 - **Description (`cropsReady == True`):** "Your wheat is golden and ripe. You could harvest it now."
-- **Items:** Field (fixture; target of "Use Seeds on Field")
+- **Items:** Field (fixture; target of "plant seeds")
 - **Exits:**
   - North to American River | **Condition:** None
   - East to Sacramento | **Condition:** None
@@ -104,8 +109,8 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 ### Sierra Mine
 - **Description (`t1PickaxeOwned == False` and `t2PickaxeOwned == False`):** "Coal veins streak the walls; gold gleams from deeper stone. You have no tool to mine any of it."
 - **Description (`t1PickaxeOwned == True` and `t2PickaxeOwned == False`):** "Coal seams are soft enough for your iron pickaxe — use the pickaxe on the coal vein to mine it. The gold veins are still too hard to crack."
-- **Description (`t2PickaxeOwned == True`):** "Coal and gold are both within reach. Your steel pickaxe bites cleanly into either — use the pickaxe on the coal vein or the gold vein."
-- **Items:** Coal Vein (fixture; target of "Use Pickaxe on Coal Vein"), Gold Vein (fixture; target of "Use Pickaxe on Gold Vein")
+- **Description (`t2PickaxeOwned == True`):** "Coal and gold are both within reach. Your steel pickaxe bites cleanly into either — use the pickaxe to mine them."
+- **Items:** Coal Vein (fixture; target of "mine coal"), Gold Vein (fixture; target of "mine gold")
 - **Exits:**
   - East to Sutter's Fort | **Condition:** None
 
@@ -167,8 +172,8 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 
 ## IV. Interaction Logic
 
-### Plant Wheat
-- **Action:** "Use Seeds on Field"
+### Plant Wheat Seeds
+- **Action:** "plant seeds"
 - **Location:** Sutter's Fort
 - **Prerequisite:** `seeds > 0` and `plantedSeeds == 0`
 - **Effect:** Sets `plantedSeeds = seeds`, `seeds = 0`, `plantTimer = 0`. Print: "You press the seeds into the tilled soil. Now you wait."
@@ -186,13 +191,13 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 - **Effect:** Adds a random integer (1-5) to `gold`. Takes 1 turn. Print: "You swirl the pan. A few specks of yellow settle at the bottom."
 
 ### Mine Coal
-- **Action:** "Use Pickaxe on Coal Vein"
+- **Action:** "mine coal"
 - **Location:** Sierra Mine
 - **Prerequisite:** `t1PickaxeOwned == True` or `t2PickaxeOwned == True`
 - **Effect:** Adds a random integer (50-200) to `coal` over 5 turns (immediately advance the game by 5 turns). Print: "You swing the pickaxe. Coal cracks loose in chunks."
 
 ### Mine Gold
-- **Action:** "Use Pickaxe on Gold Vein"
+- **Action:** "mine gold"
 - **Location:** Sierra Mine
 - **Prerequisite:** `t2PickaxeOwned == True`
 - **Effect:** Adds a random integer (20-80) to `gold` over 5 turns (immediately advance the game by 5 turns). Print: "Native gold gleams where the stone shatters."
@@ -276,24 +281,24 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 3. If `cattleCount > 0` and `resourcesAvailable == False`, increment `cattleTimer`. If `>= 10`, set `resourcesAvailable = True`.
 4. If `localStoreOwned == True`, add a random integer ($50-$150) to `liquidMoney`.
 5. If `railroadBondOwned == True`, increment `bondTimer`. If `>= 20`, add `2 * bondPrincipal` to `liquidMoney`, then reset `railroadBondOwned = False`, `bondPrincipal = 0`, `bondTimer = 0`.
-6. Recompute `netWorth = liquidMoney + (gold * 0.50) + (coal * 0.05) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`.
+6. Recompute `netWorth = liquidMoney + (gold * 1.50) + (coal * 0.50) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`.
 7. If `railroadBaronPurchased == True`, print the winning epilogue and end the game.
 
 ---
 
 ## V. Critical Path
 
-1. **Sutter's Fort** (start) - Use Seeds on Field. (`plantedSeeds = 3`, `seeds = 0`) Go north.
+1. **Sutter's Fort** (start) - plant seeds. (`plantedSeeds = 3`, `seeds = 0`) Go north.
 2. **American River** - Pan several turns. (`gold` increases by 1-5 per pan) Go south, east, south.
 3. **Brannan's Store** - Sell gold. (`gold = 0`, `liquidMoney` increases) Go north, west.
-4. **Sutter's Fort** - Harvest. (`wheat += 15`, `seeds = 3`, `cropsReady = False`) Use Seeds on Field again. (`plantedSeeds = 3`) Go east, south.
+4. **Sutter's Fort** - Harvest. (`wheat += 15`, `seeds = 3`, `cropsReady = False`) Plant seeds again. (`plantedSeeds = 3`) Go east, south.
 5. **Brannan's Store** - Sell wheat. (`wheat = 0`) Buy Membership ($100). (`membershipBought = True`) Buy Pickaxe ($50). (`t1PickaxeOwned = True`) Go north, west, west.
 6. **Sierra Mine** - Use Pickaxe on Coal Vein. (`coal` increases by 50-200 over 5 turns) Go east, east, south.
 7. **Brannan's Store** - Sell coal. Repeat steps 6-7 until you can afford the upgrade. Buy Upgrade ($500). (`t2PickaxeOwned = True`) Go north, east.
 8. **Wells Fargo Bank** - Loan. (`liquidMoney += 1000`, `loanTaken = True`) Go west, south.
 9. **Brannan's Store** - Buy Cattle ($500). (`cattleCount = 1`, `cattleTimer = 0`) Go north, east, east.
 10. **SF Exchange** - Once `liquidMoney >= 5000`, Buy Store. (`localStoreOwned = True`) Optionally Invest Railroad. (`railroadBondOwned = True`) Go west, west, west, west.
-11. **Sierra Mine** - Use Pickaxe on Gold Vein. (`gold` increases by 20-80 over 5 turns) Cycle mine-and-sell and collect-and-sell to grow `netWorth`.
+11. **Sierra Mine** - Mine gold. (`gold` increases by 20-80 over 5 turns) Cycle mine-and-sell and collect-and-sell to grow `netWorth`.
 12. **Daily Alta** - Once `netWorth >= 10000`, go north.
 13. **Big Four Mansion** - Buy Baron once `liquidMoney >= 100000`. (`railroadBaronPurchased = True`) You win.
 
@@ -305,10 +310,10 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 |-----------------------|--------------------|-----------------------------|--------------------------------------------------|
 | Wheat Seeds           | counter (Player)   | Brannan's Store             | Field (Sutter's Fort)                            |
 | Wheat                 | Crop               | Sutter's Fort               | Counter (Brannan's Store) - sell at $5 each      |
-| Gold                  | Ore                | American River, Sierra Mine | Counter (Brannan's Store) - sell at $0.50/gram   |
-| Coal                  | Ore                | Sierra Mine                 | Counter (Brannan's Store) - sell at $0.05/gram   |
-| T1 Pickaxe            | boolean flag       | Brannan's Store             | Coal Vein (Sierra Mine)                          |
-| T2 Pickaxe            | boolean flag       | Brannan's Store             | Gold Vein (Sierra Mine)                          |
+| Gold                  | Ore                | American River, Sierra Mine | Counter (Brannan's Store) - sell at $1.50/gram   |
+| Coal                  | Ore                | Sierra Mine                 | Counter (Brannan's Store) - sell at $0.50/gram   |
+| T1 Pickaxe            | boolean flag       | Brannan's Store             | Coal (Sierra Mine)                               |
+| T2 Pickaxe            | boolean flag       | Brannan's Store             | Gold (Sierra Mine)                               |
 | Membership            | boolean flag       | Brannan's Store             | Counter - unlocks buying                         |
 | Cattle                | Livestock          | Brannan's Store             | Pasture (Californio Rancho)                      |
 | Cattle Goods          | counter (Player)   | Californio Rancho           | Counter (Brannan's Store) - sell at $10 each     |
