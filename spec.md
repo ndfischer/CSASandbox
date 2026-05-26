@@ -28,13 +28,14 @@ The Gem must produce exactly the following Java source files:
 
 The game accepts only the verbs listed below. Any other input prints: "You can't do that here. Type 'help' for a list of commands."
 
-- `go [direction]` — move N/S/E/W to an adjacent room
+- `go [direction]` — move N/S/E/W to an adjacent room.
 - `help` — list every command in this vocabulary.
 - `look` — reprint the current room's description.
-- `inventory` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan).
-- `mine coal` — triggers the coal mining interaction
-- `mine gold` — triggers the gold mining interaction
-- `plant seeds` — uses seeds on field
+- `inventory` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan)
+- `mine coal` — triggers the coal mining interaction.
+- `mine gold` — triggers the gold mining interaction.
+- `plant seeds` — uses seeds on field.
+- `plant` — uses seeds on field.
 - `pan` — pan for gold (American River only).
 - `harvest` — cut ready wheat (Sutter's Fort only).
 - `collect` — gather cattle goods (Californio Rancho only).
@@ -50,6 +51,9 @@ The game accepts only the verbs listed below. Any other input prints: "You can't
 - `s` — move south to an adjacent room.
 - `d` — move east to an adjacent room.
 - `a` — move west to an adjacent room.
+- `h` — list every command in this vocabulary.
+- `l` — reprint the current room's description.
+- `i` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan).
 
 Commands are case-insensitive. Commands valid only in certain rooms print "You can't do that here." if attempted elsewhere.
 
