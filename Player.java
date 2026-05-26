@@ -1,42 +1,77 @@
+import java.util.ArrayList;
+
+/**
+ * Represents the user navigating the text adventure.
+ *
+ * Contains the player's physical inventory and tracks their location.
+ * Used heavily by Game to determine positional state.
+ */
 public class Player {
-    // Boolean flags driven by interaction logic
-    public boolean cropsReady = false;
-    public boolean resourcesAvailable = false;
-    public boolean membershipBought = false;
-    public boolean t1PickaxeOwned = false;
-    public boolean t2PickaxeOwned = false;
-    public boolean localStoreOwned = false;
-    public boolean railroadBondOwned = false;
-    public boolean loanTaken = false;
-    public boolean loanAvailable = true;
-    public boolean railroadBaronPurchased = false;
+  private ArrayList<Item> inventory;
+  private Room currentRoom;
 
-    // Game counters (all doubles)
-    public double liquidMoney = 50.0;
-    public double gold = 0.0;
-    public double coal = 0.0;
-    public double wheat = 0.0;
-    public double seeds = 3.0;
-    public double plantedSeeds = 0.0;
-    public double cattleCount = 0.0;
-    public double cattleGoods = 0.0;
-    public double bondPrincipal = 0.0;
-    public double turn = 0.0;
+  /**
+   * Constructs a new Player and initializes an empty inventory.
+   */
+  public Player() {
+    inventory = new ArrayList<Item>();
+  }
 
-    // Per-turn operational timers
-    public double plantTimer = 0.0;
-    public double cattleTimer = 0.0;
-    public double bondTimer = 0.0;
-    public double netWorth = 50.0;
+  /**
+   * Adds an item to the player's inventory.
+   *
+   * @param item the Item to add
+   */
+  public void addItem(Item item) {
+    inventory.add(item);
+  }
 
-    // Loan processing temporary storage
-    public boolean loanOffered = false;
-    public double offeredInterestRate = 0.0;
-    public int loanDenialCooldown = 0;
-
-    public void recalculateNetWorth() {
-        // Recalculates net worth strictly tracking the exact specification equation rules
-        this.netWorth = this.liquidMoney + (this.gold * 1.50) + (this.coal * 0.50) + (this.wheat * 5.0) 
-                        + (this.cattleGoods * 10.0) + (this.cattleCount * 500.0) + this.bondPrincipal;
+  /**
+   * Removes an item from the player's inventory by its exact name.
+   *
+   * @param name the name of the item to remove
+   */
+  public void removeItem(String name) {
+    // Manual loop required — built-in search methods are not allowed per AP CS A constraints
+    for (int i = 0; i < inventory.size(); i++) {
+      if (inventory.get(i).getName().equalsIgnoreCase(name)) {
+        inventory.remove(i);
+        return;
+      }
     }
+  }
+
+  /**
+   * Searches the player's inventory for an item by name.
+   *
+   * @param name the name of the item to search for
+   * @return the Item if found, or null if it does not exist in inventory
+   */
+  public Item findItem(String name) {
+    // Manual loop required — built-in search methods are not allowed
+    for (Item item : inventory) {
+      if (item.getName().equalsIgnoreCase(name)) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Sets the room the player is currently occupying.
+   *
+   * @param room the destination Room object
+   */
+  public void setCurrentRoom(Room room) {
+    this.currentRoom = room;
+  }
+
+  /**
+   * Retrieves the current room the player is in.
+   *
+   * @return the Room object
+   */
+  public Room getCurrentRoom() {
+    return currentRoom;
+  }
 }
