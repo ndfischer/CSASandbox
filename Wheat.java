@@ -1,17 +1,15 @@
+// --- FILE: Wheat.java ---
 /**
- * Represents wheat grown at Sutter's Fort.
+ * Represents wheat crops in the game.
  *
- * Extends Crop with predefined agricultural value.
+ * Extends Crop with a specific sell price and description. It represents
+ * the physical wheat grown at Sutter's Fort.
  */
 public class Wheat extends Crop {
-
   /**
-   * Constructs a Wheat crop item.
-   *
-   * @param name the name of the wheat entity
-   * @param description the description of the wheat entity
+   * Constructs a new Wheat item with predefined values.
    */
-  public Wheat(String name, String description) {
-    super(name, description, 5);
+  public Wheat() {
+    super("Wheat", "Golden, ripe wheat stalks.", 5);
   }
 }
