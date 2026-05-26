@@ -1,5 +1,17 @@
+/**
+ * Represents wheat grown at Sutter's Fort.
+ *
+ * Extends Crop with predefined agricultural value.
+ */
 public class Wheat extends Crop {
-    public Wheat() {
-        super("Wheat", "Golden and ripe wheat ready for harvest.", 5);
-    }
+
+  /**
+   * Constructs a Wheat crop item.
+   *
+   * @param name the name of the wheat entity
+   * @param description the description of the wheat entity
+   */
+  public Wheat(String name, String description) {
+    super(name, description, 5);
+  }
 }
