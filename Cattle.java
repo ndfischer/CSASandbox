@@ -1,15 +1,13 @@
-// --- FILE: Cattle.java ---
 /**
- * Represents cattle livestock in the game.
+ * Represents Cattle raised at the Rancho.
  *
- * Extends Livestock with specific production intervals and outputs. Can be
- * purchased at Brannan's Store and placed at the Californio Rancho.
+ * Extends Livestock with specific intervals and yields for cattle.
  */
 public class Cattle extends Livestock {
   /**
-   * Constructs a new Cattle item with predefined production mechanics.
+   * Constructs the default Cattle livestock item.
    */
   public Cattle() {
-    super("Cattle", "Sturdy beasts that produce beef and milk.", 10, 5, 10);
+    super("Cattle", "Sturdy grazing livestock.", 10, 5, 10);
   }
 }
