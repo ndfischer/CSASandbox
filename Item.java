@@ -1,20 +1,18 @@
-// --- FILE: Item.java ---
 /**
- * Base class for all interactive and descriptive items in the game.
+ * Base class representing any physical entity or fixture in the game world.
  *
- * This class provides the fundamental properties of an item, including its name
- * and description. It is extended by various resource classes (Ore, Crop, Livestock)
- * and used to represent physical fixtures in the game world.
+ * Demonstrates basic encapsulation and serves as the root of the item hierarchy.
+ * Used by Room to hold interactable fixtures and by subclasses for specialized data.
  */
 public class Item {
   private String name;
   private String description;
 
   /**
-   * Constructs a new Item with the specified name and description.
+   * Constructs a new Item with a name and description.
    *
-   * @param name the name of the item
-   * @param description a brief description of the item
+   * @param name the display name of the item
+   * @param description the visual or functional description of the item
    */
   public Item(String name, String description) {
     this.name = name;
@@ -24,28 +22,28 @@ public class Item {
   /**
    * Retrieves the name of the item.
    *
-   * @return the item's name
+   * @return the item name
    */
   public String getName() {
-    return this.name;
+    return name;
   }
 
   /**
    * Retrieves the description of the item.
    *
-   * @return the item's description
+   * @return the item description
    */
   public String getDescription() {
-    return this.description;
+    return description;
   }
 
   /**
-   * Returns a string representation of the item, which is its name.
+   * Returns the item name as its string representation.
    *
-   * @return the name of the item
+   * @return the string name of the item
    */
   @Override
   public String toString() {
-    return this.name;
+    return name;
   }
 }
