@@ -64,17 +64,19 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
 
 ### Iteration 4
 
-to-do:
 - pay back loan mechanic
 - add lose mechanic
 - put n,s,e,w into gem
-- more variable interest rates
-- buff gold value even more
+- more variable interest rates (10 to 20%)
+- buff gold value even more ($1.50 to $2.50)
 
+### Pay back loan
+- **Action:** "pay loan"
+- **Location:** Wells Fargo Bank
+- **Prerequisite:** `loanTaken == True`
+- **Effect:** Subtracts loan and interest accrued from `liquidMoney`. Sets `loanTaken = False`. Print: "You hand the teller your dues and he thanks you for your business."
 
 - `gameLost`: Default (False) - Lose condition, becomes true if the player has been in debt for 10 turns.
-
-- ensure game can be played in <5min
 
 
 ---
