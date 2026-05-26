@@ -1,17 +1,15 @@
+// --- FILE: Coal.java ---
 /**
- * Represents coal ore found in the Sierra Mine.
+ * Represents coal ore found in the game.
  *
- * Extends Ore with a predefined price value.
+ * Extends Ore to provide specific pricing for coal. It is placed in the
+ * Sierra Mine as a minable resource.
  */
 public class Coal extends Ore {
-
   /**
-   * Constructs a Coal ore item.
-   *
-   * @param name the name of the coal entity
-   * @param description the description of the coal entity
+   * Constructs a new Coal item with predefined value.
    */
-  public Coal(String name, String description) {
-    super(name, description, 0.50);
+  public Coal() {
+    super("Coal", "Chunks of dark, combustible coal.", 0.50);
   }
 }
