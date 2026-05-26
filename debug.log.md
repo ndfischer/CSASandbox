@@ -45,7 +45,7 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
 - "use seeds on field" -> "plant seeds"
 
 2. Buffed gold and coal values
-- Gold: $0.50 to $1.50
+- Gold: $0.50 to $2.50
 - Coal: $0.05 to $0.50
 
 3. Randomized loan interest rates
@@ -62,21 +62,16 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
     - There should be a 50% chance for the player to make 75%
     - There should be a 50% chance for the player to make 135%
 
-### Iteration 4
-
-- pay back loan mechanic
-- add lose mechanic
-- put w,a,s,d into gem
-- more variable interest rates (10 to 20%)
-- buff gold value even more ($1.50 to $2.50)
-
-### Pay back loan
+5. Pay back loan mechanic
 - **Action:** "pay loan"
 - **Location:** Wells Fargo Bank
 - **Prerequisite:** `loanTaken == True`
 - **Effect:** Subtracts loan and interest accrued from `liquidMoney`. Sets `loanTaken = False`. Print: "You hand the teller your dues and he thanks you for your business."
 
+6. Lose condition
 - `gameLost`: Default (False) - Lose condition, becomes true if the player has been in debt for 10 turns.
+
+7. Reduced win condition to only $10,000
 
 
 ---
