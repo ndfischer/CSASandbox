@@ -1,15 +1,14 @@
-// --- FILE: Main.java ---
 /**
- * Entry point for the Gold Rush California text adventure game.
+ * Entry point for the Gold Rush California game.
  *
- * This class contains the main method which instantiates the Game class
- * and begins the core game loop. It serves as the primary launcher for the program.
+ * This class instantiates the main Game object and begins the game loop.
+ * It connects the application launch to the interactive game session.
  */
 public class Main {
   /**
-   * The main method that starts the application.
+   * Main method to execute the program.
    *
-   * @param args command line arguments (not used)
+   * @param args command-line arguments (not used)
    */
   public static void main(String[] args) {
     Game game = new Game();
