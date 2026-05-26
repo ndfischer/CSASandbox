@@ -1,19 +1,18 @@
-// --- FILE: Crop.java ---
 /**
- * Represents a harvestable crop in the game.
+ * Represents agricultural products in the game world.
  *
- * Demonstrates inheritance by extending Item and adding a sellPrice field.
- * Used as a base class for specific agricultural products like Wheat.
+ * Demonstrates inheritance by extending Item and adding an agricultural sell price.
+ * Serves as the base for plant-based goods.
  */
 public class Crop extends Item {
   private int sellPrice;
 
   /**
-   * Constructs a new Crop item.
+   * Constructs a Crop item.
    *
    * @param name the name of the crop
    * @param description the description of the crop
-   * @param sellPrice the price the crop sells for per unit
+   * @param sellPrice the price for which this crop can be sold
    */
   public Crop(String name, String description, int sellPrice) {
     super(name, description);
@@ -21,11 +20,11 @@ public class Crop extends Item {
   }
 
   /**
-   * Retrieves the sell price of the crop.
+   * Retrieves the selling price of the crop.
    *
-   * @return the sell price
+   * @return the sell price as an integer
    */
   public int getSellPrice() {
-    return this.sellPrice;
+    return sellPrice;
   }
 }
