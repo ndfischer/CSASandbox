@@ -40,27 +40,27 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
 ### Iteration 3 
 
 1. Simplified commands
--"use pickaxe on coal vein" -> "mine coal"
--"use pickaxe on gold vein" -> "mine gold"
--"use seeds on field" -> "plant seeds"
+- "use pickaxe on coal vein" -> "mine coal"
+- "use pickaxe on gold vein" -> "mine gold"
+- "use seeds on field" -> "plant seeds"
 
 2. Buffed gold and coal values
--Gold: $0.50 to $1.50
--Coal: $0.05 to $0.50
+- Gold: $0.50 to $1.50
+- Coal: $0.05 to $0.50
 
 3. Randomized loan interest rates
--loan — request a loan (can only take one at a time) with a random (5-15%) interest rate. Interest calculated every 10 turns (Wells Fargo only).
--accept loan — accept the loan that Wells Fargo offers. (Wells Fargo only)
--deny loan — deny the loan that Wells Fargo offers. You will be able to request a new loan in 7 turns. (Wells Fargo only)
+- loan — request a loan (can only take one at a time) with a random (5-15%) interest rate. Interest calculated every 10 turns (Wells Fargo only).
+- accept loan — accept the loan that Wells Fargo offers. (Wells Fargo only)
+- deny loan — deny the loan that Wells Fargo offers. You will be able to request a new loan in 7 turns. (Wells Fargo only)
 
 4. Randomized returns from railroad speculation
 - **Logic:**
-  -There should be a 30% chance for the player to earn a small amount or lose money from the speculation
-    -This amount should be from 10% to -35%
-  -There should be a 70% chance for the player to earn money
-    -If the player rolled to make money, the game should roll again to check how much
-    -There should be a 80% chance for the player to make 30% to 60%
-    -There should be a 20% chance for the player to make 80% to 150%
+  - There should be a 30% chance for the player to earn a small amount or lose money from the speculation
+    - This amount should be from 10% to -35%
+  - There should be a 70% chance for the player to earn money
+    - If the player rolled to make money, the game should roll again to check how much
+    - There should be a 80% chance for the player to make 30% to 60%
+    - There should be a 20% chance for the player to make 80% to 150%
 
 ### Iteration 4
 
