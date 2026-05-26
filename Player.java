@@ -1,81 +1,42 @@
-// --- FILE: Player.java ---
-import java.util.ArrayList;
-
-/**
- * Tracks the player's entity properties, inventory tokens, and location markers.
- *
- * <p>Operates alongside rooms and the engine to validate spatial or material tasks 
- * while maintaining strict encapsulation.
- */
 public class Player {
-  private ArrayList<Item> inventory;
-  private Room currentRoom;
+    // Boolean flags driven by interaction logic
+    public boolean cropsReady = false;
+    public boolean resourcesAvailable = false;
+    public boolean membershipBought = false;
+    public boolean t1PickaxeOwned = false;
+    public boolean t2PickaxeOwned = false;
+    public boolean localStoreOwned = false;
+    public boolean railroadBondOwned = false;
+    public boolean loanTaken = false;
+    public boolean loanAvailable = true;
+    public boolean railroadBaronPurchased = false;
 
-  /**
-   * Initializes state elements tracking individual player records.
-   */
-  public Player() {
-    this.inventory = new ArrayList<Item>();
-  }
+    // Game counters (all doubles)
+    public double liquidMoney = 50.0;
+    public double gold = 0.0;
+    public double coal = 0.0;
+    public double wheat = 0.0;
+    public double seeds = 3.0;
+    public double plantedSeeds = 0.0;
+    public double cattleCount = 0.0;
+    public double cattleGoods = 0.0;
+    public double bondPrincipal = 0.0;
+    public double turn = 0.0;
 
-  /**
-   * Standardizes movement updates resetting current coordinates.
-   *
-   * @param room Next target Room object node mapping location.
-   */
-  public void setCurrentRoom(Room room) {
-    this.currentRoom = room;
-  }
+    // Per-turn operational timers
+    public double plantTimer = 0.0;
+    public double cattleTimer = 0.0;
+    public double bondTimer = 0.0;
+    public double netWorth = 50.0;
 
-  /**
-   * Returns current structural zone coordinates.
-   *
-   * @return The active Room object reference context.
-   */
-  public Room getCurrentRoom() {
-    return this.currentRoom;
-  }
+    // Loan processing temporary storage
+    public boolean loanOffered = false;
+    public double offeredInterestRate = 0.0;
+    public int loanDenialCooldown = 0;
 
-  /**
-   * Fetches full container object lists.
-   *
-   * @return Active standard inventory element lists.
-   */
-  public ArrayList<Item> getInventory() {
-    return this.inventory;
-  }
-
-  /**
-   * Appends items inside internal inventory trackers.
-   *
-   * @param item Item being collected.
-   */
-  public void addItem(Item item) {
-    this.inventory.add(item);
-  }
-
-  /**
-   * Removes targeted items by structural collection index offsets.
-   *
-   * @param index Targeted loop iteration indices tracking inventory.
-   */
-  public void removeItem(int index) {
-    this.inventory.remove(index);
-  }
-
-  /**
-   * Evaluates if an item matches target criteria using clean looping paradigms.
-   *
-   * @param name Target multi-word lookup identity token.
-   * @return Matching item instance if found, or null.
-   */
-  public Item findItem(String name) {
-    // Manual loop required — built-in search methods are not allowed per AP CS A constraints
-    for (Item item : this.inventory) {
-      if (item.getName().equalsIgnoreCase(name)) {
-        return item;
-      }
+    public void recalculateNetWorth() {
+        // Recalculates net worth strictly tracking the exact specification equation rules
+        this.netWorth = this.liquidMoney + (this.gold * 1.50) + (this.coal * 0.50) + (this.wheat * 5.0) 
+                        + (this.cattleGoods * 10.0) + (this.cattleCount * 500.0) + this.bondPrincipal;
     }
-    return null;
-  }
 }
