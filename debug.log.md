@@ -37,7 +37,7 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
 
 ---
 
-### Iteration 3 (May 26)
+### Iteration 3 — Overall Game Balancing (May 26)
 
 Spec gap.
 
