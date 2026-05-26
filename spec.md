@@ -28,14 +28,13 @@ The Gem must produce exactly the following Java source files:
 
 The game accepts only the verbs listed below. Any other input prints: "You can't do that here. Type 'help' for a list of commands."
 
-- `go [direction]` — move N/S/E/W to an adjacent room.
+- `go [direction]` — move N/S/E/W to an adjacent room
 - `help` — list every command in this vocabulary.
 - `look` — reprint the current room's description.
-- `inventory` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan)
-- `mine coal` — triggers the coal mining interaction.
-- `mine gold` — triggers the gold mining interaction.
-- `plant seeds` — uses seeds on field.
-- `plant` — uses seeds on field.
+- `inventory` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan).
+- `mine coal` — triggers the coal mining interaction
+- `mine gold` — triggers the gold mining interaction
+- `plant seeds` — uses seeds on field
 - `pan` — pan for gold (American River only).
 - `harvest` — cut ready wheat (Sutter's Fort only).
 - `collect` — gather cattle goods (Californio Rancho only).
@@ -44,16 +43,12 @@ The game accepts only the verbs listed below. Any other input prints: "You can't
 - `accept loan` — accept the loan that Wells Fargo offers. (Wells Fargo only)
 - `deny loan` — deny the loan that Wells Fargo offers. You will be able to request a new loan in 7 turns. (Wells Fargo only)
 - `buy [thing]` — purchase. Valid things: `membership`, `pickaxe`, `upgrade`, `cattle`, `seeds`, `store`, `baron`.
-- `buy [thing] [amount]` — purchase mutiple items. immediately advance the game by [amount] turns. Valid things: `cattle`, `seeds`.
 - `sell [item]` — sell stock. Valid items: `gold`, `coal`, `wheat`, `goods`.
 - `invest railroad [amount]` — buy a railroad bond. Railroad bonds have randomized returns (SF Exchange only).
 - `w` — move north to an adjacent room.
 - `s` — move south to an adjacent room.
 - `d` — move east to an adjacent room.
 - `a` — move west to an adjacent room.
-- `h` — list every command in this vocabulary.
-- `l` — reprint the current room's description.
-- `i` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan).
 
 Commands are case-insensitive. Commands valid only in certain rooms print "You can't do that here." if attempted elsewhere.
 
@@ -78,7 +73,7 @@ Commands are case-insensitive. Commands valid only in certain rooms print "You c
 
 - `liquidMoney` (50), `gold` (0), `coal` (0), `wheat` (0), `seeds` (3), `plantedSeeds` (0), `cattleCount` (0), `cattleGoods` (0), `bondPrincipal` (0), `turn` (0).
 - `plantTimer` (0), `cattleTimer` (0), `bondTimer` (0) - per-turn counters that trip `cropsReady` at 5, `resourcesAvailable` at 10, and bond maturity at 20.
-- `netWorth` - recomputed each turn as `liquidMoney + (gold * 2.50) + (coal * 0.50) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`. Gates the Big Four Mansion at $10,000.
+- `netWorth` - recomputed each turn as `liquidMoney + (gold * 2.50) + (coal * 0.50) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`. Gates the Big Four Mansion at $10,000 minimum.
 
 ---
 
@@ -100,7 +95,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 ## III. Room Definitions
 
 ### Sutter's Fort (START)
-- **Description (`cropsReady == False`):** "Timber walls enclose a patch of tilled soil. To the north lies the American River; east, Sacramento. The year is 1849. Your fields lie quiet — if you had seeds, you could use them on the field."
+- **Description (`cropsReady == False`):** "Timber walls enclose a patch of tilled soil. To the north lies the American River; east, Sacramento. The year is 1849. Your fields lie quiet — if you had seeds, you could plant them here."
 - **Description (`cropsReady == True`):** "Your wheat is golden and ripe. You could harvest it now."
 - **Items:** Field (fixture; target of "plant seeds")
 - **Exits:**
@@ -117,7 +112,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 
 ### Sierra Mine
 - **Description (`t1PickaxeOwned == False` and `t2PickaxeOwned == False`):** "Coal veins streak the walls; gold gleams from deeper stone. You have no tool to mine any of it."
-- **Description (`t1PickaxeOwned == True` and `t2PickaxeOwned == False`):** "Coal seams are soft enough for your iron pickaxe — use the pickaxe on the coal vein to mine it. The gold veins are still too hard to crack."
+- **Description (`t1PickaxeOwned == True` and `t2PickaxeOwned == False`):** "Coal seams are soft enough for your iron pickaxe — use the pickaxe on the coal vein to mine it. The gold veins are still out of reach."
 - **Description (`t2PickaxeOwned == True`):** "Coal and gold are both within reach. Your steel pickaxe bites cleanly into either — use the pickaxe to mine them."
 - **Items:** Coal Vein (fixture; target of "mine coal"), Gold Vein (fixture; target of "mine gold")
 - **Exits:**
@@ -141,7 +136,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
   - West to Sutter's Fort | **Condition:** None
 
 ### Brannan's Store
-- **Description (`membershipBought == False`):** "Sam Brannan's General Store. He eyes you over a ledger. 'Members only, friend. You can sell to me, but you can't buy until you've paid your dues — buy a membership for $100.'"
+- **Description (`membershipBought == False`):** "Sam Brannan's General Store. He eyes you over a ledger. 'Members only, friend. You can sell to me, but you can't buy until you've paid your dues — $100.'"
 - **Description (`membershipBought == True`):** "Brannan tips his hat. 'Welcome back. Buy seeds, a pickaxe, an upgrade, or cattle — or sell me your gold, coal, wheat, or goods.'"
 - **Items:** Counter (fixture; site of all buy and sell actions)
 - **Exits:**
@@ -163,7 +158,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
   - East to SF Exchange | **Condition:** None
 
 ### San Francisco Exchange
-- **Description (`localStoreOwned == False` and `railroadBondOwned == False`):** "The trading floor of the SF Exchange. A chalkboard lists storefront leases and railroad bonds — you could buy a store or invest in a railroad bond."
+- **Description (`localStoreOwned == False` and `railroadBondOwned == False`):** "The trading floor of the SF Exchange. A chalkboard lists storefront leases and railroad bonds — you could buy a store or invest in a railroad."
 - **Description (`localStoreOwned == True` and `railroadBondOwned == False`):** "Your storefront deed sits framed by the clerk's desk. You could still invest in a railroad bond."
 - **Description (`localStoreOwned == False` and `railroadBondOwned == True`):** "The clerk tracks your railroad bond on his ledger. You could still buy a store."
 - **Description (`localStoreOwned == True` and `railroadBondOwned == True`):** "The clerk gestures to your deed and bond. 'Two irons in the fire.'"
@@ -172,7 +167,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
   - West to Wells Fargo Bank | **Condition:** None
 
 ### Big Four Mansion (WIN ROOM)
-- **Description:** "The marble foyer of the Big Four Mansion atop Nob Hill. A lobbyist extends a hand. The leather chair by the window is the Railroad Baron's — for $10,000, you could buy baron status and take that seat."
+- **Description:** "The marble foyer of the Big Four Mansion atop Nob Hill. A lobbyist extends a hand. The leather chair by the window is the Railroad Baron's — for $10,000, you could buy baron status and secure your fortune."
 - **Items:** Baron's Chair (fixture; target of "buy baron")
 - **Exits:**
   - South to Daily Alta | **Condition:** None
@@ -281,7 +276,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 - **Action:** "invest railroad [amount]"
 - **Location:** SF Exchange
 - **Prerequisite:** `amount > 0`, `liquidMoney >= amount`, `railroadBondOwned == False`
-- **Effect:** Subtracts `amount` from `liquidMoney`. Sets `railroadBondOwned = True`, `bondPrincipal = amount`, `bondTimer = 0`. Print: "You buy a bond on the Central Pacific. The clerk seals it with red wax."
+- **Effect:** Subtracts `amount` from `liquidMoney`. Sets `railroadBondOwned = True`, `bondPrincipal = amount`, `bondTimer = 0`. Print: "You buy a bond on the Central Pacific. The clerk seals it in an envelope."
 - **Logic:**
   - There should be a 30% chance for the player to earn a small amount from the speculation
     - This amount should be from 10% to 35%
@@ -297,7 +292,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 - **Effect:** Subtracts 10000 from `liquidMoney`. Sets `railroadBaronPurchased = True`. Print: "You sign the lobbyist's ledger. The chair by the window is yours. California has a new king."
 
 ### Per-Turn Sequence
-At the end of every turn (including each of the mutliple turns triggered by selling multiple items or mining):
+At the end of every turn (including each of the 5 turns triggered by mining):
 1. Increment `turn`.
 2. If `plantedSeeds > 0` and `cropsReady == False`, increment `plantTimer`. If `>= 5`, set `cropsReady = True`.
 3. If `cattleCount > 0` and `resourcesAvailable == False`, increment `cattleTimer`. If `>= 10`, set `resourcesAvailable = True`.
