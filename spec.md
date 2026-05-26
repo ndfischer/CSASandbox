@@ -39,7 +39,7 @@ The game accepts only the verbs listed below. Any other input prints: "You can't
 - `harvest` — cut ready wheat (Sutter's Fort only).
 - `collect` — gather cattle goods (Californio Rancho only).
 - `read` — read the newspaper (Daily Alta only).
-- `loan` — request a loan (can only take one at a time) with a random (5-15%) interest rate. Interest calculated every 10 turns (Wells Fargo only).
+- `loan` — request a loan (can only take one at a time) with a random (10% to 20%) interest rate. Interest calculated every 10 turns (Wells Fargo only).
 - `accept loan` — accept the loan that Wells Fargo offers. (Wells Fargo only)
 - `deny loan` — deny the loan that Wells Fargo offers. You will be able to request a new loan in 7 turns. (Wells Fargo only)
 - `buy [thing]` — purchase. Valid things: `membership`, `pickaxe`, `upgrade`, `cattle`, `seeds`, `store`, `baron`.
@@ -73,7 +73,7 @@ Commands are case-insensitive. Commands valid only in certain rooms print "You c
 
 - `liquidMoney` (50), `gold` (0), `coal` (0), `wheat` (0), `seeds` (3), `plantedSeeds` (0), `cattleCount` (0), `cattleGoods` (0), `bondPrincipal` (0), `turn` (0).
 - `plantTimer` (0), `cattleTimer` (0), `bondTimer` (0) - per-turn counters that trip `cropsReady` at 5, `resourcesAvailable` at 10, and bond maturity at 20.
-- `netWorth` - recomputed each turn as `liquidMoney + (gold * 0.50) + (coal * 0.05) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`. Gates the Big Four Mansion at $10,000.
+- `netWorth` - recomputed each turn as `liquidMoney + (gold * 2.50) + (coal * 0.50) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`. Gates the Big Four Mansion at $10,000.
 
 ---
 
@@ -81,8 +81,8 @@ Commands are case-insensitive. Commands valid only in certain rooms print "You c
 
 - **Base Class:** `Item` (fields: `String name`, `String description`)
 - **Subclass:** `Ore` (Extra field: `double pricePerGram`)
-  - `Gold`: pricePerGram = 0.50
-  - `Coal`: pricePerGram = 0.05
+  - `Gold`: pricePerGram = 2.50
+  - `Coal`: pricePerGram = 0.50
 - **Subclass:** `Crop` (Extra field: `int sellPrice`)
   - `Wheat`: sellPrice = 5; grows in 5 turns
 - **Subclass:** `Livestock` (Extra fields: `int productionInterval`, `int productionAmount`, `int goodsSellPrice`)
@@ -246,13 +246,19 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 - **Action:** "sell [item]" where item is `gold`, `coal`, `wheat`, or `goods`
 - **Location:** Brannan's Store
 - **Prerequisite:** Player has at least 1 of the named item.
-- **Effect:** Removes all of the named item. Adds payment at: gold $0.50/g, coal $0.05/g, wheat $5, goods $10. Print: "Brannan counts coins onto the counter."
+- **Effect:** Removes all of the named item. Adds payment at: gold $2.50/g, coal $0.50/g, wheat $5, goods $10. Print: "Brannan counts coins onto the counter."
 
 ### Take Loan
 - **Action:** "loan"
 - **Location:** Wells Fargo Bank
 - **Prerequisite:** `loanTaken == False`
 - **Effect:** Adds 1000 to `liquidMoney`. Sets `loanTaken = True`. Print: "The teller counts out a thousand dollars and stamps the ledger."
+
+### Pay back loan
+- **Action:** "pay loan"
+- **Location:** Wells Fargo Bank
+- **Prerequisite:** `loanTaken == True`
+- **Effect:** Subtracts loan and interest accrued from `liquidMoney`. Sets `loanTaken = False`. Print: "You hand the teller your dues and he thanks you for your business."
 
 ### Read Newspaper
 - **Action:** "read"
@@ -292,8 +298,9 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 3. If `cattleCount > 0` and `resourcesAvailable == False`, increment `cattleTimer`. If `>= 10`, set `resourcesAvailable = True`.
 4. If `localStoreOwned == True`, add a random integer ($50-$150) to `liquidMoney`.
 5. If `railroadBondOwned == True`, increment `bondTimer`. If `>= 20`, add `2 * bondPrincipal` to `liquidMoney`, then reset `railroadBondOwned = False`, `bondPrincipal = 0`, `bondTimer = 0`.
-6. Recompute `netWorth = liquidMoney + (gold * 1.50) + (coal * 0.50) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`.
+6. Recompute `netWorth = liquidMoney + (gold * 2.50) + (coal * 0.50) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`.
 7. If `railroadBaronPurchased == True`, print the winning epilogue and end the game.
+8. If the player has been in debt for 10 turns, print the lose epilogue and end the game.
 
 ---
 
@@ -321,7 +328,7 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 |-----------------------|--------------------|-----------------------------|--------------------------------------------------|
 | Wheat Seeds           | counter (Player)   | Brannan's Store             | Field (Sutter's Fort)                            |
 | Wheat                 | Crop               | Sutter's Fort               | Counter (Brannan's Store) - sell at $5 each      |
-| Gold                  | Ore                | American River, Sierra Mine | Counter (Brannan's Store) - sell at $1.50/gram   |
+| Gold                  | Ore                | American River, Sierra Mine | Counter (Brannan's Store) - sell at $2.50/gram   |
 | Coal                  | Ore                | Sierra Mine                 | Counter (Brannan's Store) - sell at $0.50/gram   |
 | T1 Pickaxe            | boolean flag       | Brannan's Store             | Coal (Sierra Mine)                               |
 | T2 Pickaxe            | boolean flag       | Brannan's Store             | Gold (Sierra Mine)                               |
