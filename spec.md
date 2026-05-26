@@ -43,12 +43,16 @@ The game accepts only the verbs listed below. Any other input prints: "You can't
 - `accept loan` — accept the loan that Wells Fargo offers. (Wells Fargo only)
 - `deny loan` — deny the loan that Wells Fargo offers. You will be able to request a new loan in 7 turns. (Wells Fargo only)
 - `buy [thing]` — purchase. Valid things: `membership`, `pickaxe`, `upgrade`, `cattle`, `seeds`, `store`, `baron`.
+- `buy [thing] [amount]` — purchase mutiple items. immediately advance the game by [amount] turns. Valid things: `cattle`, `seeds`.
 - `sell [item]` — sell stock. Valid items: `gold`, `coal`, `wheat`, `goods`.
 - `invest railroad [amount]` — buy a railroad bond. Railroad bonds have randomized returns (SF Exchange only).
 - `n` — move north to an adjacent room.
 - `s` — move south to an adjacent room.
 - `e` — move east to an adjacent room.
 - `w` — move west to an adjacent room.
+- `h` — list every command in this vocabulary.
+- `l` — reprint the current room's description.
+- `i` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan).
 
 Commands are case-insensitive. Commands valid only in certain rooms print "You can't do that here." if attempted elsewhere.
 
@@ -286,7 +290,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 - **Effect:** Subtracts 100000 from `liquidMoney`. Sets `railroadBaronPurchased = True`. Print: "You sign the lobbyist's ledger. The chair by the window is yours. California has a new king."
 
 ### Per-Turn Sequence
-At the end of every turn (including each of the 5 turns triggered by mining):
+At the end of every turn (including each of the mutliple turns triggered by selling multiple items or mining):
 1. Increment `turn`.
 2. If `plantedSeeds > 0` and `cropsReady == False`, increment `plantTimer`. If `>= 5`, set `cropsReady = True`.
 3. If `cattleCount > 0` and `resourcesAvailable == False`, increment `cattleTimer`. If `>= 10`, set `resourcesAvailable = True`.
