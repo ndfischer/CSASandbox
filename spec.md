@@ -300,7 +300,7 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 5. If `railroadBondOwned == True`, increment `bondTimer`. If `>= 20`, add `2 * bondPrincipal` to `liquidMoney`, then reset `railroadBondOwned = False`, `bondPrincipal = 0`, `bondTimer = 0`.
 6. Recompute `netWorth = liquidMoney + (gold * 2.50) + (coal * 0.50) + (wheat * 5) + (cattleGoods * 10) + (cattleCount * 500) + bondPrincipal`.
 7. If `railroadBaronPurchased == True`, print the winning epilogue and end the game.
-8. If the player has been in debt for 10 turns, print the lose epilogue and end the game.
+8. If the player has been in debt for 30 turns, print the lose epilogue and end the game.
 
 ---
 
