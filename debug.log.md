@@ -55,12 +55,8 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
 
 4. Randomized returns from railroad speculation
 - **Logic:**
-  - There should be a 30% chance for the player to earn a small amount from the speculation
-    - This amount should be from 10% to 35%
-  - There should be a 70% chance for the player to earn money
-    - If the player rolled to make money, the game should roll again to check how much
-    - There should be a 50% chance for the player to make 75%
-    - There should be a 50% chance for the player to make 135%
+  - The player should have equally weighted chances to earn from 35% to 135%
+
 
 5. Pay back loan mechanic
 - **Action:** "pay loan"
