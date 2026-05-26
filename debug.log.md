@@ -11,7 +11,7 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
 
 ## Iterations
 
-### Iteration 1 — Inconsistent Java file structure across Gem runs
+### Iteration 1 — Inconsistent Java file structure across Gem runs (May 22)
 
 **Bug observed when running the game:** When we regenerated the project, the Gem produced a different file structure each run. One run put every class inside `Main.java`; another split them into separate files but with inconsistent names. This made it impossible to keep multiple versions side-by-side in our GitHub repo, since the file set kept changing.
 
@@ -23,7 +23,7 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
 
 ---
 
-### Iteration 2 — Playtesters couldn't figure out what to do
+### Iteration 2 — Playtesters couldn't figure out what to do (May 23)
 
 **Bug observed when running the game:** Playtesters loaded the game and got stuck almost immediately. They couldn't tell what verbs to type, for example, at the American River they read "specks of yellow shimmer in the riverbed" but had no idea the verb was `pan`. Even when they typed something reasonable, the Gem's parser handled unrecognized input inconsistently across runs (sometimes ignoring it silently, sometimes crashing).
 
@@ -37,7 +37,9 @@ Every change to `spec.md` after the Logic Audit is recorded here. Each iteration
 
 ---
 
-### Iteration 3 
+### Iteration 3 (May 26)
+
+Spec gap.
 
 1. Simplified commands
 - "use pickaxe on coal vein" -> "mine coal"
@@ -78,18 +80,18 @@ Once the game completes the critical path successfully, the final spec is run th
 
 ### Run 1
 
-**Date:**
-**Outcome:** Pass / Fail
-**Notes:**
+**Date:** MAY 26
+**Outcome:** PASS
+**Notes:** Logic + crit path passes
 
 ### Run 2
 
-**Date:**
-**Outcome:** Pass / Fail
-**Notes:**
+**Date:** MAY 26
+**Outcome:** PASS
+**Notes:** Logic + crit path passes
 
 ### Run 3
 
-**Date:**
-**Outcome:** Pass / Fail
-**Notes:**
+**Date:** MAY 26
+**Outcome:** PASS
+**Notes:** Logic + crit path passes
