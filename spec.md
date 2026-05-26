@@ -45,6 +45,10 @@ The game accepts only the verbs listed below. Any other input prints: "You can't
 - `buy [thing]` — purchase. Valid things: `membership`, `pickaxe`, `upgrade`, `cattle`, `seeds`, `store`, `baron`.
 - `sell [item]` — sell stock. Valid items: `gold`, `coal`, `wheat`, `goods`.
 - `invest railroad [amount]` — buy a railroad bond. Railroad bonds have randomized returns (SF Exchange only).
+- `n` — move north to an adjacent room.
+- `s` — move south to an adjacent room.
+- `e` — move east to an adjacent room.
+- `w` — move west to an adjacent room.
 
 Commands are case-insensitive. Commands valid only in certain rooms print "You can't do that here." if attempted elsewhere.
 
