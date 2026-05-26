@@ -148,7 +148,7 @@ public class Game {
             return;
         }
         if (lowerInput.equals("inventory")) {
-            System.out.printf("Cash: $%.2f | Gold: %.2fg | Coal: %.2fg | Wheat: %.2f | Seeds: %.2f | Cattle Goods: %.2f\n",
+            System.out.printf("Cash: $%.2f\nGold: %.2fg\nCoal: %.2fg\nWheat: %.2f\nSeeds: %.2f\nCattle Goods: %.2f\n",
                     this.liquidMoney, this.gold, this.coal, this.wheat, this.seeds, this.cattleGoods);
             System.out.printf("Owned Status Flags: Membership=%b, Pickaxe=%b, Upgrade=%b, Store Owned=%b, Bond Owned=%b, Loan Taken=%b\n",
                     this.membershipBought, this.t1PickaxeOwned, this.t2PickaxeOwned, this.localStoreOwned, this.railroadBondOwned, this.loanTaken);
