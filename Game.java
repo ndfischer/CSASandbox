@@ -164,7 +164,7 @@ public class Game {
     }
     if (lowerInput.equals("inventory")) {
       System.out.println("--- INVENTORY & TRACKED PORFOLIOS ---");
-      System.out.printf("liquidMoney: %.2f | gold: %.2f | coal: %.2f | wheat: %.2f | seeds: %.2f | cattleGoods: %.2f\n", 
+      System.out.printf("liquidMoney: %.2f\ngold: %.2f\ncoal: %.2f\nwheat: %.2f\nseeds: %.2f\ncattleGoods: %.2f\n", 
           this.liquidMoney, this.gold, this.coal, this.wheat, this.seeds, this.cattleGoods);
       System.out.printf("Flags - Membership: %b | Pickaxe: %b | Upgrade: %b | Store Deed: %b | Bond: %b | Loan Account: %b\n",
           this.membershipBought, this.t1PickaxeOwned, this.t2PickaxeOwned, this.localStoreOwned, this.railroadBondOwned, this.loanTaken);
