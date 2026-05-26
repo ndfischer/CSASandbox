@@ -10,6 +10,6 @@ public class Coal extends Ore {
    * Instantiates an active Coal resource tracking profile.
    */
   public Coal() {
-    super("Coal", "Dark, high-grade chunks of mineralized carbon fuel.", 0.05);
+    super("Coal", "Dark, high-grade chunks of mineralized carbon fuel.", 0.50);
   }
 }
