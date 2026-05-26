@@ -28,7 +28,7 @@ The Gem must produce exactly the following Java source files:
 
 The game accepts only the verbs listed below. Any other input prints: "You can't do that here. Type 'help' for a list of commands."
 
-- `go [direction]` — move N/S/E/W to an adjacent room.
+- `go [direction]` — move N/S/E/W to an adjacent room
 - `help` — list every command in this vocabulary.
 - `look` — reprint the current room's description.
 - `inventory` — list the player's counters (liquidMoney, gold, coal, wheat, seeds, cattleGoods) and owned flags (membership, pickaxe, upgrade, deed, bond, loan).
@@ -45,10 +45,10 @@ The game accepts only the verbs listed below. Any other input prints: "You can't
 - `buy [thing]` — purchase. Valid things: `membership`, `pickaxe`, `upgrade`, `cattle`, `seeds`, `store`, `baron`.
 - `sell [item]` — sell stock. Valid items: `gold`, `coal`, `wheat`, `goods`.
 - `invest railroad [amount]` — buy a railroad bond. Railroad bonds have randomized returns (SF Exchange only).
-- `n` — move north to an adjacent room.
+- `w` — move north to an adjacent room.
 - `s` — move south to an adjacent room.
-- `e` — move east to an adjacent room.
-- `w` — move west to an adjacent room.
+- `d` — move east to an adjacent room.
+- `a` — move west to an adjacent room.
 
 Commands are case-insensitive. Commands valid only in certain rooms print "You can't do that here." if attempted elsewhere.
 
@@ -67,7 +67,7 @@ Commands are case-insensitive. Commands valid only in certain rooms print "You c
 - `railroadBondOwned`: Default (False) - Becomes True via "invest railroad". Starts `bondTimer` and changes SF Exchange description.
 - `loanTaken`: Default (False) - Becomes True via "loan". Prevents the one-time loan from being taken twice.
 - `loanAvailable`: Default (True) - Becomes false when the player denies a loan. Becomes true again after 7 turns.
-- `railroadBaronPurchased`: Default (False) - Win Condition. Becomes True via "buy baron". Ends the game in victory.
+- `railroadBaronPurchased`: Default (False) - Win Condition. Becomes True via "buy baron". Ends the game in victory, requires $10k
 
 **Counters** (driven by interaction logic; all are doubles; defaults shown):
 
@@ -167,7 +167,7 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
   - West to Wells Fargo Bank | **Condition:** None
 
 ### Big Four Mansion (WIN ROOM)
-- **Description:** "The marble foyer of the Big Four Mansion atop Nob Hill. A lobbyist extends a hand. The leather chair by the window is the Railroad Baron's — for $100,000, you could buy baron status and take that seat."
+- **Description:** "The marble foyer of the Big Four Mansion atop Nob Hill. A lobbyist extends a hand. The leather chair by the window is the Railroad Baron's — for $10,000, you could buy baron status and take that seat."
 - **Items:** Baron's Chair (fixture; target of "buy baron")
 - **Exits:**
   - South to Daily Alta | **Condition:** None
@@ -278,18 +278,18 @@ Single-instance items (pickaxes, membership, deeds, bond, baron status) are trac
 - **Prerequisite:** `amount > 0`, `liquidMoney >= amount`, `railroadBondOwned == False`
 - **Effect:** Subtracts `amount` from `liquidMoney`. Sets `railroadBondOwned = True`, `bondPrincipal = amount`, `bondTimer = 0`. Print: "You buy a bond on the Central Pacific. The clerk seals it with red wax."
 - **Logic:**
-  -There should be a 30% chance for the player to earn a small amount or lose money from the speculation
-    -This amount should be from 10% to -35%
-  -There should be a 70% chance for the player to earn money
-    -If the player rolled to make money, the game should roll again to check how much
-    -There should be a 80% chance for the player to make 30% to 60%
-    -There should be a 20% chance for the player to make 80% to 150%
+  - There should be a 30% chance for the player to earn a small amount from the speculation
+    - This amount should be from 10% to 35%
+  - There should be a 70% chance for the player to earn money
+    - If the player rolled to make money, the game should roll again to check how much
+    - There should be a 50% chance for the player to make 75%
+    - There should be a 50% chance for the player to make 135% (multiply principal by 2.35)
 
 ### Buy Railroad Baron Status (WIN)
 - **Action:** "buy baron"
 - **Location:** Big Four Mansion
-- **Prerequisite:** `liquidMoney >= 100000`
-- **Effect:** Subtracts 100000 from `liquidMoney`. Sets `railroadBaronPurchased = True`. Print: "You sign the lobbyist's ledger. The chair by the window is yours. California has a new king."
+- **Prerequisite:** `liquidMoney >= 10000`
+- **Effect:** Subtracts 10000 from `liquidMoney`. Sets `railroadBaronPurchased = True`. Print: "You sign the lobbyist's ledger. The chair by the window is yours. California has a new king."
 
 ### Per-Turn Sequence
 At the end of every turn (including each of the 5 turns triggered by mining):
@@ -309,16 +309,16 @@ At the end of every turn (including each of the 5 turns triggered by mining):
 1. **Sutter's Fort** (start) - plant seeds. (`plantedSeeds = 3`, `seeds = 0`) Go north.
 2. **American River** - Pan several turns. (`gold` increases by 1-5 per pan) Go south, east, south.
 3. **Brannan's Store** - Sell gold. (`gold = 0`, `liquidMoney` increases) Go north, west.
-4. **Sutter's Fort** - Harvest. (`wheat += 15`, `seeds = 3`, `cropsReady = False`) Plant seeds again. (`plantedSeeds = 3`) Go east, south.
-5. **Brannan's Store** - Sell wheat. (`wheat = 0`) Buy Membership ($100). (`membershipBought = True`) Buy Pickaxe ($50). (`t1PickaxeOwned = True`) Go north, west, west.
-6. **Sierra Mine** - Use Pickaxe on Coal Vein. (`coal` increases by 50-200 over 5 turns) Go east, east, south.
-7. **Brannan's Store** - Sell coal. Repeat steps 6-7 until you can afford the upgrade. Buy Upgrade ($500). (`t2PickaxeOwned = True`) Go north, east.
-8. **Wells Fargo Bank** - Loan. (`liquidMoney += 1000`, `loanTaken = True`) Go west, south.
-9. **Brannan's Store** - Buy Cattle ($500). (`cattleCount = 1`, `cattleTimer = 0`) Go north, east, east.
-10. **SF Exchange** - Once `liquidMoney >= 5000`, Buy Store. (`localStoreOwned = True`) Optionally Invest Railroad. (`railroadBondOwned = True`) Go west, west, west, west.
-11. **Sierra Mine** - Mine gold. (`gold` increases by 20-80 over 5 turns) Cycle mine-and-sell and collect-and-sell to grow `netWorth`.
-12. **Daily Alta** - Once `netWorth >= 10000`, go north.
-13. **Big Four Mansion** - Buy Baron once `liquidMoney >= 100000`. (`railroadBaronPurchased = True`) You win.
+4. **Sutter's Fort** - Harvest. (`wheat += 15`, `seeds = 3`, `cropsReady = False`) Plant seeds again. (`plantedSeeds = 3`) Go east, east.
+6. **Wells Fargo Bank** - Loan. (`liquidMoney += 1000`, `loanTaken = True`) Go west, south.
+7. **Brannan's Store** - Sell wheat. (`wheat = 0`) Buy Membership ($100). (`membershipBought = True`) Buy Pickaxe ($50). (`t1PickaxeOwned = True`) Go north, west, west.
+8. **Sierra Mine** - Use Pickaxe on Coal Vein. (`coal` increases by 50-200 over 5 turns) Go east, east, south.
+9. **Brannan's Store** - Sell coal. Repeat steps 6-7 until you can afford the upgrade. Buy Upgrade ($500). (`t2PickaxeOwned = True`)
+10. **Brannan's Store** - Buy Cattle (optional) ($500). (`cattleCount = 1`, `cattleTimer = 0`) Go north, east, east.
+11. **SF Exchange** - Once `liquidMoney >= 5000`, Buy Store. (optional) (`localStoreOwned = True`) Invest Railroad. (`railroadBondOwned = True`) Go west, west, west, west.
+12. **Sierra Mine** - Mine gold. (`gold` increases by 20-80 over 5 turns) Cycle mine-and-sell and collect-and-sell to grow `netWorth`, while investing in railroads
+13. **Daily Alta** - Once `netWorth >= 10000`, go north.
+14. **Big Four Mansion** - Buy Baron once `liquidMoney >= 10000`. (`railroadBaronPurchased = True`) You win.
 
 ---
 
